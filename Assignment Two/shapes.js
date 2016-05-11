@@ -25,6 +25,32 @@ pyramid.prototype.populate = function()
     this.indices.push(1, 2, 5, 2, 3, 6, 3, 4, 7, 4, 1, 8);
 }
 
+function wall()
+{
+    shape.call(this);
+    this.populate();
+    this.init_buffers();
+}
+
+inherit(wall, shape);
+shape.prototype.populate = function()
+{
+    this.vertices.push(vec3(0.5, 0, 0.5), vec3(-0.5, 0, 0.5), vec3(-0.5, 0, -0.5), vec3(0.5, 0, -0.5));
+    this.normals.push(vec3(0.5, 1, 0.5), vec3(-0.5, 1, 0.5), vec3(-0.5, 1, -0.5), vec3(0.5, 1, -0.5));
+    this.texture_coords.push(vec2(0.5, 0), vec2(0, 0), vec2(0, 0.5), vec2(0.5, 0.5));
+    this.indices.push(0, 1, 2, 0, 2, 3);
+    
+    this.vertices.push(vec3(0.5, 0, 0.5), vec3(0.5, 0, -0.5), vec3(0.5, -1, 0.5), vec3(0.5, -1, -0.5));
+    this.normals.push(vec3(1, 0, 0.5), vec3(1, 0, -0.5), vec3(1, -1, 0.5), vec3(1, -1, -0.5));
+    this.texture_coords.push(vec2(0.5, 0.5), vec2(0.5, 1), vec2(1, 0.5), vec2(1, 1));
+    this.indices.push(4, 5, 6, 5, 6, 7);
+    
+    this.vertices.push(vec3(-0.5, 0, 0.5), vec3(-0.5, 0, -0.5), vec3(-0.5, -1, 0.5), vec3(-0.5, -1, -0.5));
+    this.normals.push(vec3(-1, 0, 0.5), vec3(-1, 0, -0.5), vec3(-1, -1, 0.5), vec3(-1, -1, -0.5));
+    this.texture_coords.push(vec2(0.5, 0.5), vec2(0.5, 1), vec2(1, 0.5), vec2(1, 1));
+    this.indices.push(8, 9, 10, 9, 10, 11);
+}
+
 function triangle_fan_full(num_tris, points_transform)		// Arrange triangles in a fan.  This version goes all the way around a circle with them.
 {
     shape.call(this);

@@ -15,7 +15,7 @@ function CURRENT_BASIS_IS_WORTH_SHOWING(self, model_transform) { self.m_axis.dra
 // *******************************************************
 // IMPORTANT -- In the line below, add the filenames of any new images you want to include for textures!
 
-var texture_filenames_to_load = ["stars.png", "text.png", "earth.gif"];
+var texture_filenames_to_load = ["stars.png", "text.png", "earth.gif", "wall.png"];
 
 // *******************************************************	
 // When the web page's window loads it creates an "Animation" object.  It registers itself as a displayable object to our other class "GL_Context" -- which OpenGL is told to call upon every time a
@@ -104,22 +104,7 @@ Animation.prototype.display = function (time) {
     this.basis_id = 0;
 
     this.m_axis = new axis();
-    /**********************************
-	Start coding here!!!!
-	**********************************/
-    /*//move in a circle
-    model_transform = mult(model_transform, rotation(this.graphicsState.animation_time / -20, 0, 1, 0)); //go around the y axis
-    model_transform = mult(model_transform, translation(7, 0, 0));
-
-    //move up and down
-    var y = Math.sin(this.graphicsState.animation_time / 4000 * 4);
-    model_transform = mult(model_transform, translation(0, y, 0));
-    this.m_cube.draw(this.graphicsState, model_transform, purplePlastic);
-
-    //add another cube
-    model_transform = mult(model_transform, rotation(this.graphicsState.animation_time / 10, 1, 0, 0));
-    model_transform = mult(model_transform, translation(1, 0, 0));
-    this.m_cube.draw(this.graphicsState, model_transform, purplePlastic);*/
+    
     if (animate)
         Game.gameLoop(this, this.animation_delta_time/1000);
     else
@@ -130,8 +115,8 @@ Animation.prototype.display = function (time) {
 
 Animation.prototype.update_strings = function (debug_screen_strings)		// Strings this particular class contributes to the UI
 {
-    debug_screen_strings.string_map["time"] = "Animation Time: " + this.graphicsState.animation_time / 1000 + "s";
-    debug_screen_strings.string_map["basis"] = "Showing basis: " + this.m_axis.basis_selection;
-    debug_screen_strings.string_map["animate"] = "Animation " + (animate ? "on" : "off");
+    debug_screen_strings.string_map["fps"] = "FPS: " + (1000/this.animation_delta_time).toFixed(2);
+    debug_screen_strings.string_map["time"] = "Game time: " + (this.graphicsState.animation_time / 1000).toFixed(2) + "s";
+    debug_screen_strings.string_map["animate"] = (animate ? "" : "Paused");
     debug_screen_strings.string_map["thrust"] = "Thrust: " + thrust;
 }

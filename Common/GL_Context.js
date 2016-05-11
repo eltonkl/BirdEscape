@@ -125,7 +125,7 @@ function Debug_Screen()
 
 	Debug_Screen.prototype.update_strings = function( debug_screen_object ) 			// Strings this particular class contributes to the UI
 	{
-		debug_screen_object.string_map["tick"] = "Frame: " + this.tick++;
-		debug_screen_object.string_map["start_index"] = "start_index: " + this.start_index;
+		//debug_screen_object.string_map["tick"] = "Frame: " + this.tick++;
+		//debug_screen_object.string_map["start_index"] = "start_index: " + this.start_index;
 	}
 
