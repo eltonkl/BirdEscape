@@ -119,6 +119,13 @@ module Game {
         }
     }
 
+    export function keyPressed(key: string): void {
+        switch (key) {
+            case "ALT+q": gameObjects[0]._acceleration[0] = -25; break;
+            case "ALT+e": gameObjects[0]._acceleration[0] = 25; break;
+        }
+    }
+
     export function gameLoop(animation: any, timeElapsed: number) {
         if (timeElapsed != 0.0)
             simulateWorld(gameObjects, timeElapsed);
@@ -129,6 +136,7 @@ module Game {
         for (let obj of objects) {
             obj.updateState(timeElapsed);
         }
+        objects[0]._acceleration[0] = 0;
         gameTime += timeElapsed;
     }
 

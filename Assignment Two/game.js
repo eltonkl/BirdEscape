@@ -87,6 +87,17 @@ var Game;
         }
     }
     Game.initializeGame = initializeGame;
+    function keyPressed(key) {
+        switch (key) {
+            case "ALT+q":
+                gameObjects[0]._acceleration[0] = -50;
+                break;
+            case "ALT+e":
+                gameObjects[0]._acceleration[0] = 50;
+                break;
+        }
+    }
+    Game.keyPressed = keyPressed;
     function gameLoop(animation, timeElapsed) {
         if (timeElapsed != 0.0)
             simulateWorld(gameObjects, timeElapsed);
@@ -98,6 +109,7 @@ var Game;
             var obj = objects_1[_i];
             obj.updateState(timeElapsed);
         }
+        objects[0]._acceleration[0] = 0;
         gameTime += timeElapsed;
     }
     function render(animation, objects) {

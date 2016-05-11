@@ -65,6 +65,8 @@ Animation.prototype.init_keys = function () {
     shortcut.add("ALT+g", function () { gouraud = !gouraud; gl.uniform1i(g_addrs.GOURAUD_loc, gouraud); });
     shortcut.add("ALT+n", function () { color_normals = !color_normals; gl.uniform1i(g_addrs.COLOR_NORMALS_loc, color_normals); });
     shortcut.add("ALT+a", function () { animate = !animate; });
+    shortcut.add("ALT+q", function() { Game.keyPressed("ALT+q"); });
+    shortcut.add("ALT+e", function() { Game.keyPressed("ALT+e"); });
 
     shortcut.add("p", (function (self) { return function () { self.m_axis.basis_selection++; console.log("Selected Basis: " + self.m_axis.basis_selection); }; })(this));
     shortcut.add("m", (function (self) { return function () { self.m_axis.basis_selection--; console.log("Selected Basis: " + self.m_axis.basis_selection); }; })(this));
