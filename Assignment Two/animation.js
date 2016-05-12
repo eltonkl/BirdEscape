@@ -27,7 +27,7 @@ function Animation() {
         self.context = new GL_Context("gl-canvas");
         self.context.register_display_object(self);
 
-        gl.clearColor(0, 0, 0, 1);			// Background color
+        gl.clearColor(0.0, 0.25, 0.0, 1);			// Background color
 
         for (var i = 0; i < texture_filenames_to_load.length; i++)
             initTexture(texture_filenames_to_load[i], true);
@@ -36,8 +36,7 @@ function Animation() {
         self.graphicsState = new GraphicsState(translation(0, 0, -40), perspective(45, canvas.width / canvas.height, .1, 1000), 0);
 
         gl.uniform1i(g_addrs.GOURAUD_loc, gouraud); gl.uniform1i(g_addrs.COLOR_NORMALS_loc, color_normals); gl.uniform1i(g_addrs.SOLID_loc, solid);
-        
-        Game.initializeGame();
+        Game.initializeGame(self);
         self.context.render();
     })(this);
 
