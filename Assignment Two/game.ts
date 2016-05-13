@@ -105,7 +105,7 @@ module Game {
                 }
             }
             super.updateState(timeElapsed);
-            for (let i = 0; i < wallObjects.length - 1 && wallObjects[i]._position[2] < this._position[2]; i++) {
+            for (let i = 0; i < wallObjects.length && wallObjects[i]._position[2] < this._position[2]; i++) {
                 let rightX = wallObjects[i]._position[0] + wallObjects[i]._scale[0]/2;
                 let leftX = wallObjects[i]._position[0] - wallObjects[i]._scale[0]/2;
                 if ((wallObjects[i]._position[2] - this._position[2]) > -3) {
@@ -191,7 +191,7 @@ module Game {
                 case PowerupType.Duplicate:
                     break;
                 case PowerupType.Speedup:
-                    for (let i = 0; i < powerupObjects.length - 1; i++) {
+                    for (let i = 0; i < powerupObjects.length; i++) {
                         if (powerupObjects[i]._type == PowerupType.Speedup && powerupObjects[i]._timeLeft > 0 && powerupObjects[i]._activated)
                             return;
                     }
@@ -355,7 +355,7 @@ module Game {
     let s_pyramid;
     let s_wall;
 
-    const BIRD_MAXIMUM_Z_DELTA: number = 4;
+    const BIRD_MAXIMUM_Z_DELTA: number = 5;
     const PLAYER_DEFAULT_Z_VELOCITY: number = 15;
     const PLAYER_MAX_Z_VELOCITY: number = 30;
     let PLAYER_CURRENT_Z_VELOCITY: number = PLAYER_DEFAULT_Z_VELOCITY;
@@ -376,10 +376,10 @@ module Game {
     function createPowerup(z: number): void {
         switch (randomInclusive(0, 1)) {
             case 0:
-                powerupObjects.push(new Powerup(s_pyramid, earth, [4, 4, 4], [randomInclusive(-25, 25), 4, z], PowerupType.Duplicate));
+                powerupObjects.push(new Powerup(s_pyramid, earth, [4, 4, 4], [randomInclusive(-30, 30), 4, z], PowerupType.Duplicate));
                 break;
             case 1:
-                powerupObjects.push(new Powerup(s_cube, stars, [4, 4, 4], [randomInclusive(-25, 25), 4, z], PowerupType.Speedup));
+                powerupObjects.push(new Powerup(s_cube, stars, [4, 4, 4], [randomInclusive(-30, 30), 4, z], PowerupType.Speedup));
                 break;
         }
     }
@@ -436,7 +436,7 @@ module Game {
         for (let i = 10; i > -5; i--) {
             Array.prototype.push.apply(wallObjects, generateWalls(-25 * i + 12.5));
         }
-        for (let i = 15; i > 0; i--) {
+        for (let i = 1; i < 15; i++) {
             createPowerup(-100 * i);
         }
     }
@@ -519,7 +519,7 @@ module Game {
             }
         }
 
-        for (let i = 0; i < powerupObjects.length - 1; i++) {
+        for (let i = 0; i < powerupObjects.length; i++) {
             if (powerupObjects[i]._type == PowerupType.Duplicate && powerupObjects[i]._activated == true) {
                 powerupObjects.splice(i, 1);
                 createPowerup(powerupObjects[powerupObjects.length - 1]._position[2] - 150);
@@ -543,7 +543,7 @@ module Game {
         
         playerObjects = playerObjects.filter(function(obj: GameObject) {
             if ((Math.abs(obj._position[2] - bird._position[2]) < 5) && (Math.abs(obj._position[0] - bird._position[0]) < 2)) {
-                bird._velocity[2] = -7;
+                bird._velocity[2] = -10;
                 return false;
             }
             return true;

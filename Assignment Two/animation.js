@@ -46,29 +46,29 @@ function Animation() {
 // *******************************************************	
 // init_keys():  Define any extra keyboard shortcuts here
 Animation.prototype.init_keys = function () {
-    shortcut.add("Space", function () { thrust[1] = -1; }); shortcut.add("Space", function () { thrust[1] = 0; }, { 'type': 'keyup' });
-    shortcut.add("z", function () { thrust[1] = 1; }); shortcut.add("z", function () { thrust[1] = 0; }, { 'type': 'keyup' });
-    shortcut.add("w", function () { thrust[2] = 1; }); shortcut.add("w", function () { thrust[2] = 0; }, { 'type': 'keyup' });
-    shortcut.add("a", function () { thrust[0] = 1; }); shortcut.add("a", function () { thrust[0] = 0; }, { 'type': 'keyup' });
-    shortcut.add("s", function () { thrust[2] = -1; }); shortcut.add("s", function () { thrust[2] = 0; }, { 'type': 'keyup' });
-    shortcut.add("d", function () { thrust[0] = -1; }); shortcut.add("d", function () { thrust[0] = 0; }, { 'type': 'keyup' });
-    shortcut.add("f", function () { looking = !looking; });
-    shortcut.add(",", (function (self) { return function () { self.graphicsState.camera_transform = mult(rotation(3, 0, 0, 1), self.graphicsState.camera_transform); }; })(this));
-    shortcut.add(".", (function (self) { return function () { self.graphicsState.camera_transform = mult(rotation(3, 0, 0, -1), self.graphicsState.camera_transform); }; })(this));
+    //shortcut.add("Space", function () { thrust[1] = -1; }); shortcut.add("Space", function () { thrust[1] = 0; }, { 'type': 'keyup' });
+    //shortcut.add("z", function () { thrust[1] = 1; }); shortcut.add("z", function () { thrust[1] = 0; }, { 'type': 'keyup' });
+    //shortcut.add("w", function () { thrust[2] = 1; }); shortcut.add("w", function () { thrust[2] = 0; }, { 'type': 'keyup' });
+    //shortcut.add("a", function () { thrust[0] = 1; }); shortcut.add("a", function () { thrust[0] = 0; }, { 'type': 'keyup' });
+    //shortcut.add("s", function () { thrust[2] = -1; }); shortcut.add("s", function () { thrust[2] = 0; }, { 'type': 'keyup' });
+    //shortcut.add("d", function () { thrust[0] = -1; }); shortcut.add("d", function () { thrust[0] = 0; }, { 'type': 'keyup' });
+    //shortcut.add("f", function () { looking = !looking; });
+    //shortcut.add(",", (function (self) { return function () { self.graphicsState.camera_transform = mult(rotation(3, 0, 0, 1), self.graphicsState.camera_transform); }; })(this));
+    //shortcut.add(".", (function (self) { return function () { self.graphicsState.camera_transform = mult(rotation(3, 0, 0, -1), self.graphicsState.camera_transform); }; })(this));
 
-    shortcut.add("r", (function (self) { return function () { self.graphicsState.camera_transform = mat4(); }; })(this));
-    shortcut.add("ALT+s", function () {
-        solid = !solid; gl.uniform1i(g_addrs.SOLID_loc, solid);
-        gl.uniform4fv(g_addrs.SOLID_COLOR_loc, vec4(Math.random(), Math.random(), Math.random(), 1));
-    });
-    shortcut.add("ALT+g", function () { gouraud = !gouraud; gl.uniform1i(g_addrs.GOURAUD_loc, gouraud); });
-    shortcut.add("ALT+n", function () { color_normals = !color_normals; gl.uniform1i(g_addrs.COLOR_NORMALS_loc, color_normals); });
+    //shortcut.add("r", (function (self) { return function () { self.graphicsState.camera_transform = mat4(); }; })(this));
+    //shortcut.add("ALT+s", function () {
+        //solid = !solid; gl.uniform1i(g_addrs.SOLID_loc, solid);
+        //gl.uniform4fv(g_addrs.SOLID_COLOR_loc, vec4(Math.random(), Math.random(), Math.random(), 1));
+    //});
+    //shortcut.add("ALT+g", function () { gouraud = !gouraud; gl.uniform1i(g_addrs.GOURAUD_loc, gouraud); });
+    //shortcut.add("ALT+n", function () { color_normals = !color_normals; gl.uniform1i(g_addrs.COLOR_NORMALS_loc, color_normals); });
     shortcut.add("ALT+a", function () { animate = !animate; });
-    shortcut.add("ALT+q", function() { Game.keyPressed("ALT+q"); });
-    shortcut.add("ALT+e", function() { Game.keyPressed("ALT+e"); });
+    shortcut.add("a", function() { Game.keyPressed("ALT+q"); });
+    shortcut.add("d", function() { Game.keyPressed("ALT+e"); });
 
-    shortcut.add("p", (function (self) { return function () { self.m_axis.basis_selection++; console.log("Selected Basis: " + self.m_axis.basis_selection); }; })(this));
-    shortcut.add("m", (function (self) { return function () { self.m_axis.basis_selection--; console.log("Selected Basis: " + self.m_axis.basis_selection); }; })(this));
+    //shortcut.add("p", (function (self) { return function () { self.m_axis.basis_selection++; console.log("Selected Basis: " + self.m_axis.basis_selection); }; })(this));
+    //shortcut.add("m", (function (self) { return function () { self.m_axis.basis_selection--; console.log("Selected Basis: " + self.m_axis.basis_selection); }; })(this));
 }
 
 function update_camera(self, animation_delta_time) {
@@ -119,5 +119,5 @@ Animation.prototype.update_strings = function (debug_screen_strings)		// Strings
     debug_screen_strings.string_map["fps"] = "FPS: " + (1000/this.animation_delta_time).toFixed(2);
     debug_screen_strings.string_map["time"] = "Score: " + ((this.graphicsState.animation_time / 1000) * 3).toFixed(0);
     debug_screen_strings.string_map["animate"] = (animate ? "" : "Paused");
-    //debug_screen_strings.string_map["thrust"] = "Thrust: " + thrust;
+    debug_screen_strings.string_map["msg"] = "Run away!";
 }

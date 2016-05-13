@@ -118,9 +118,9 @@ function Debug_Screen()
 
 	Debug_Screen.prototype.init_keys = function() 
 	{		
-		shortcut.add( "2",     ( function(self) { return function() { self.start_index = ( self.start_index + 1) % Object.keys( self.string_map ).length; };  } ) (this) );	
-		shortcut.add( "1",     ( function(self) { return function() { self.start_index = ( self.start_index - 1  + Object.keys( self.string_map ).length ) % Object.keys( self.string_map ).length; };  } ) (this) );	
-		shortcut.add( "v",     ( function(self) { return function() { self.visible = !self.visible; };  } ) (this) );	
+		//shortcut.add( "2",     ( function(self) { return function() { self.start_index = ( self.start_index + 1) % Object.keys( self.string_map ).length; };  } ) (this) );	
+		//shortcut.add( "1",     ( function(self) { return function() { self.start_index = ( self.start_index - 1  + Object.keys( self.string_map ).length ) % Object.keys( self.string_map ).length; };  } ) (this) );	
+		//shortcut.add( "v",     ( function(self) { return function() { self.visible = !self.visible; };  } ) (this) );	
 	};
 
 	Debug_Screen.prototype.update_strings = function( debug_screen_object ) 			// Strings this particular class contributes to the UI

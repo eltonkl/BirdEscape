@@ -95,7 +95,7 @@ var Game;
                 }
             }
             _super.prototype.updateState.call(this, timeElapsed);
-            for (var i = 0; i < wallObjects.length - 1 && wallObjects[i]._position[2] < this._position[2]; i++) {
+            for (var i = 0; i < wallObjects.length && wallObjects[i]._position[2] < this._position[2]; i++) {
                 var rightX = wallObjects[i]._position[0] + wallObjects[i]._scale[0] / 2;
                 var leftX = wallObjects[i]._position[0] - wallObjects[i]._scale[0] / 2;
                 if ((wallObjects[i]._position[2] - this._position[2]) > -3) {
@@ -171,7 +171,7 @@ var Game;
                 case PowerupType.Duplicate:
                     break;
                 case PowerupType.Speedup:
-                    for (var i = 0; i < powerupObjects.length - 1; i++) {
+                    for (var i = 0; i < powerupObjects.length; i++) {
                         if (powerupObjects[i]._type == PowerupType.Speedup && powerupObjects[i]._timeLeft > 0 && powerupObjects[i]._activated)
                             return;
                     }
@@ -303,7 +303,7 @@ var Game;
     var s_cylinder;
     var s_pyramid;
     var s_wall;
-    var BIRD_MAXIMUM_Z_DELTA = 4;
+    var BIRD_MAXIMUM_Z_DELTA = 5;
     var PLAYER_DEFAULT_Z_VELOCITY = 15;
     var PLAYER_MAX_Z_VELOCITY = 30;
     var PLAYER_CURRENT_Z_VELOCITY = PLAYER_DEFAULT_Z_VELOCITY;
@@ -322,10 +322,10 @@ var Game;
     function createPowerup(z) {
         switch (randomInclusive(0, 1)) {
             case 0:
-                powerupObjects.push(new Powerup(s_pyramid, earth, [4, 4, 4], [randomInclusive(-25, 25), 4, z], PowerupType.Duplicate));
+                powerupObjects.push(new Powerup(s_pyramid, earth, [4, 4, 4], [randomInclusive(-30, 30), 4, z], PowerupType.Duplicate));
                 break;
             case 1:
-                powerupObjects.push(new Powerup(s_cube, stars, [4, 4, 4], [randomInclusive(-25, 25), 4, z], PowerupType.Speedup));
+                powerupObjects.push(new Powerup(s_cube, stars, [4, 4, 4], [randomInclusive(-30, 30), 4, z], PowerupType.Speedup));
                 break;
         }
     }
@@ -378,7 +378,7 @@ var Game;
         for (var i = 10; i > -5; i--) {
             Array.prototype.push.apply(wallObjects, generateWalls(-25 * i + 12.5));
         }
-        for (var i = 15; i > 0; i--) {
+        for (var i = 1; i < 15; i++) {
             createPowerup(-100 * i);
         }
     }
@@ -466,7 +466,7 @@ var Game;
                 }
             }
         }
-        for (var i = 0; i < powerupObjects.length - 1; i++) {
+        for (var i = 0; i < powerupObjects.length; i++) {
             if (powerupObjects[i]._type == PowerupType.Duplicate && powerupObjects[i]._activated == true) {
                 powerupObjects.splice(i, 1);
                 createPowerup(powerupObjects[powerupObjects.length - 1]._position[2] - 150);
@@ -488,7 +488,7 @@ var Game;
         }
         playerObjects = playerObjects.filter(function (obj) {
             if ((Math.abs(obj._position[2] - bird._position[2]) < 5) && (Math.abs(obj._position[0] - bird._position[0]) < 2)) {
-                bird._velocity[2] = -7;
+                bird._velocity[2] = -10;
                 return false;
             }
             return true;
