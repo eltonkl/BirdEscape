@@ -117,7 +117,7 @@ Animation.prototype.display = function (time) {
 Animation.prototype.update_strings = function (debug_screen_strings)		// Strings this particular class contributes to the UI
 {
     debug_screen_strings.string_map["fps"] = "FPS: " + (1000/this.animation_delta_time).toFixed(2);
-    debug_screen_strings.string_map["time"] = "Game time: " + (this.graphicsState.animation_time / 1000).toFixed(2) + "s";
+    debug_screen_strings.string_map["time"] = "Score: " + ((this.graphicsState.animation_time / 1000) * 3).toFixed(0);
     debug_screen_strings.string_map["animate"] = (animate ? "" : "Paused");
-    debug_screen_strings.string_map["thrust"] = "Thrust: " + thrust;
+    //debug_screen_strings.string_map["thrust"] = "Thrust: " + thrust;
 }

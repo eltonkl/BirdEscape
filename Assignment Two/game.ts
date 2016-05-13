@@ -87,16 +87,29 @@ module Game {
         
         updateState(timeElapsed): void {
             let oldZ = this._position[2];
-            let oldXRotation = this._rotation[0]; 
-
+            let oldXRotation = this._rotation[0];
+            
+            for (let i = wallObjects.length - 1; i > 0; i--) {
+                let rightX = wallObjects[i]._position[0] + wallObjects[i]._scale[0]/2;
+                let leftX = wallObjects[i]._position[0] - wallObjects[i]._scale[0]/2;
+                if (Math.abs(wallObjects[i]._position[2] - this._position[2]) < 2.5) {
+                    if ((leftX - this._position[0]) < 3 && (leftX - this._position[0]) > 0 && this._velocity[0] > 0) {
+                        this._velocity[0] = 0;
+                        break;
+                    }
+                    else if ((this._position[0] - rightX) < 3 && (this._position[0] - rightX) > 0 && this._velocity[0] < 0) {
+                        this._velocity[0] = 0;
+                        break;
+                    }
+                }
+            }
             super.updateState(timeElapsed);
             for (let i = 0; i < wallObjects.length - 1 && wallObjects[i]._position[2] < this._position[2]; i++) {
                 let rightX = wallObjects[i]._position[0] + wallObjects[i]._scale[0]/2;
                 let leftX = wallObjects[i]._position[0] - wallObjects[i]._scale[0]/2;
-                if ((wallObjects[i]._position[2] - this._position[2]) > -3
-                    && this._position[0] > leftX && this._position[0] < rightX) {
-                    this._position[2] = oldZ;
-                    break;
+                if ((wallObjects[i]._position[2] - this._position[2]) > -3) {
+                    if (this._position[0] > leftX - 2.5 && this._position[0] < rightX + 2.5)
+                        this._position[2] = oldZ;
                 }
             }
 
@@ -135,8 +148,55 @@ module Game {
         }
     }
     
+    enum PowerupType {
+        Duplicate,
+        Speedup
+    }
+    
+    class Powerup extends GameObject {
+        constructor(shape: any,
+                    material: any,
+                    scale: Vec3 = [1, 1, 1],
+                    position: Vec3 = [0, 0, 0],
+                    type: PowerupType) {
+            super(shape, material, scale, undefined, undefined, position, undefined, undefined, undefined, undefined, undefined, undefined);
+            this._type = type;
+            this._timeLeft = 25;
+            this._activated = false;
+        }
+        
+        _type: PowerupType;
+        _timeLeft: number;
+        _activated: boolean;
+        
+        enablePowerup(maxIndex: number): void {
+            if (this._activated)
+                return;
+            this._activated = true;
+            switch (this._type) {
+                case PowerupType.Duplicate:
+                    playerObjects.push(new Player(s_sphere, ballTex, [2.5, 2.5, 2.5], undefined, undefined,
+                                        [0, 5, playerObjects[maxIndex]._position[2] + 5], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
+                    break;
+                case PowerupType.Speedup:
+                    CUR_HORIZONTAL_VELOCITY = MAX_HORIZONTAL_VELOCITY;
+                    break;
+            }
+        }
+        
+        disablePowerup(): void {
+            switch (this._type) {
+                case PowerupType.Duplicate:
+                    break;
+                case PowerupType.Speedup:
+                    CUR_HORIZONTAL_VELOCITY = NORMAL_HORIZONTAL_VELOCITY;
+                    break;
+            }
+        }
+    }
+    
 
-    class Bee extends GameObject {
+    class Bird extends GameObject {
         constructor(scale: Vec3 = [1, 1, 1],
                     rotateAbout: Vec3 = [0, 0, 0],
                     rotation: Vec3 = [0, 0, 0],
@@ -150,12 +210,12 @@ module Game {
         updateState(timeElapsed: number): void {
             let minIndex = 0;
             playerObjects.forEach(function(obj: GameObject, index: number) {
-                if (obj._position[2] < playerObjects[minIndex]._position[2])
+                if (obj._position[2] > playerObjects[minIndex]._position[2])
                     minIndex = index;
             });
             this._position[0] = playerObjects[minIndex]._position[0];
-            if (this._velocity[2] > -(PLAYER_DEFAULT_Z_VELOCITY + BEE_MAXIMUM_Z_DELTA))
-                this._velocity[2] = -(PLAYER_DEFAULT_Z_VELOCITY + BEE_MAXIMUM_Z_DELTA);
+            if (this._velocity[2] < -(PLAYER_DEFAULT_Z_VELOCITY + BIRD_MAXIMUM_Z_DELTA))
+                this._velocity[2] = -(PLAYER_DEFAULT_Z_VELOCITY + BIRD_MAXIMUM_Z_DELTA);
             super.updateState(timeElapsed);
         }
         
@@ -165,18 +225,18 @@ module Game {
             // Base of the body
             model_transform = mult(model_transform, scale(2.0, 1, 1));
             s_cube.draw(animation.graphicsState, model_transform, bodyMaterial);
-
-            model_transform = base_transform;
-            // Tail
-            model_transform = mult(model_transform, translation(2.5, 0, 0));
-            model_transform = mult(model_transform, scale(1.5, 0.55, 0.55));
-            s_sphere.draw(animation.graphicsState, model_transform, tailMaterial);
-
+            
             model_transform = base_transform;
             // Head
             model_transform = mult(model_transform, translation(-1.5, 0, 0));
             model_transform = mult(model_transform, scale(0.5, 0.5, 0.5));
             s_sphere.draw(animation.graphicsState, model_transform, headMaterial);
+            
+            model_transform = base_transform;
+            model_transform = mult(model_transform, translation(-1.85, 0, 0));
+            model_transform = mult(model_transform, rotation(-270, 0, 0, 1));
+            model_transform = mult(model_transform, scale(0.5, 0.75, 0.5));
+            s_pyramid.draw(animation.graphicsState, model_transform, tailMaterial);
         }
 
         drawWings(animation, model_transform, wingMaterial) : void
@@ -238,7 +298,7 @@ module Game {
             s_cube.draw(animation.graphicsState, scale_transform, legMaterial);
         }
 
-        drawBee(animation, model_transform, headMaterial, tailMaterial, bodyMaterial, legMaterial, wingMaterial) : void
+        drawBird(animation, model_transform, headMaterial, tailMaterial, bodyMaterial, legMaterial, wingMaterial) : void
         {
             // move up and down
 	        var y = 1.5 * Math.sin(animation.graphicsState.animation_time / 750);
@@ -251,23 +311,18 @@ module Game {
             this.drawBody(animation, model_transform, headMaterial, tailMaterial, bodyMaterial);
             this.drawWings(animation, model_transform, wingMaterial);
             this.drawPairOfLegs(animation, model_transform, legMaterial);
-            model_transform = mult(model_transform, translation(0.5, 0, 0));
-            this.drawPairOfLegs(animation, model_transform, legMaterial);
-            model_transform = base_transform;
-            model_transform = mult(model_transform, translation(-0.5, 0, 0));
-            this.drawPairOfLegs(animation, model_transform, legMaterial);
         }
         
         draw(animation: any): void {
-            this.drawBee(animation, this._transform, purplePlastic, yellowPlastic, greyPlastic, greyPlastic, lightGreyPlastic);
+            this.drawBird(animation, this._transform, purplePlastic, yellowPlastic, greyPlastic, greyPlastic, lightGreyPlastic);
         }
     }
 
     let playerObjects: Player[] = [];
     let sidewallObjects: GameObject[] = [];
-    let gameObjects: GameObject[] = [];
+    let powerupObjects: Powerup[] = [];
     let wallObjects: Wall[] = [];
-    let bee: Bee;
+    let bird: Bird;
     let gameTime: number = 0.0;
 
     // 1st parameter:  Color (4 floats in RGBA format), 2nd: Ambient light, 3rd: Diffuse reflectivity, 4th: Specular reflectivity, 5th: Smoothness exponent, 6th: Texture image.
@@ -293,9 +348,9 @@ module Game {
     let s_pyramid;
     let s_wall;
 
-    const BEE_MAXIMUM_Z_DELTA: number = 0.25;
+    const BIRD_MAXIMUM_Z_DELTA: number = 0.30;
     const PLAYER_DEFAULT_Z_VELOCITY: number = 15;
-    const MAX_HORIZONTAL_VELOCITY: number = 45;
+    const MAX_HORIZONTAL_VELOCITY: number = 55;
     const NORMAL_HORIZONTAL_VELOCITY: number = 30;
     let CUR_HORIZONTAL_VELOCITY: number = NORMAL_HORIZONTAL_VELOCITY;
     const ACCELERATION: number = 800;
@@ -352,7 +407,7 @@ module Game {
         playerObjects.push(new Player(s_sphere, ballTex, [2.5, 2.5, 2.5], undefined, undefined,
                                         [0, 5, 0], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
         last_z_pos = 0;
-        bee = new Bee([1, 1, 1], undefined, undefined, [0, 8, 40], [0, 0, -4], undefined, [0, 0, -0.001]);
+        bird = new Bird([1, 1, 1], undefined, undefined, [0, 8, 15], [0, 0, -7], undefined, [0, 0, -0.5]);
         for (let i = 40; i > -15; i--) {
             sidewallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5*i]));
             sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [FLOOR_WIDTH/2 + 2.5, 10, -5*i]));
@@ -360,6 +415,16 @@ module Game {
         }
         for (let i = 10; i > -5; i--) {
             Array.prototype.push.apply(wallObjects, generateWalls(-25 * i + 12.5));
+        }
+        for (let i = 20; i > 0; i--) {
+            switch (randomInclusive(0, 1)) {
+                case 0:
+                    powerupObjects.push(new Powerup(s_pyramid, earth, [4, 4, 4], [0, 4, -75 * i], PowerupType.Duplicate));
+                    break;
+                case 1:
+                    powerupObjects.push(new Powerup(s_cube, stars, [4, 4, 4], [0, 4, -75 * i], PowerupType.Speedup));
+                    break;
+            }
         }
     }
 
@@ -386,17 +451,17 @@ module Game {
         for (let obj of playerObjects) {
             obj.updateState(timeElapsed);
         }
-        for (let obj of gameObjects) {
+        for (let obj of powerupObjects) {
             obj.updateState(timeElapsed);
         }
-        bee.updateState(timeElapsed);
+        bird.updateState(timeElapsed);
         for (let obj of wallObjects) {
             obj.updateState(timeElapsed);
         }
         
         let maxIndex = 0;
         playerObjects.forEach(function(obj: GameObject, index: number) {
-            if (obj._position[2] > playerObjects[maxIndex]._position[2])
+            if (obj._position[2] < playerObjects[maxIndex]._position[2])
                 maxIndex = index;
         });
         
@@ -428,8 +493,46 @@ module Game {
         camera_pos[2] += pos_diff;
         animation.graphicsState.camera_transform = lookAt(camera_pos, [playerObjects[maxIndex]._position[0]/2, playerObjects[maxIndex]._position[1] - 5, playerObjects[maxIndex]._position[2]], [0, 1, 0])
         
+        for (let obj of playerObjects) {
+            for (let obj2 of powerupObjects) {
+                if ((Math.abs(obj._position[2] - obj2._position[2]) < 3) && (Math.abs(obj._position[0] - obj2._position[0]) < 3)) {
+                    obj2.enablePowerup(maxIndex);
+                    obj2._position[2] = 5;
+                }
+            }
+        }
+
+        for (let i = 0; i < powerupObjects.length - 1; i++) {
+            if (powerupObjects[i]._type == PowerupType.Duplicate && powerupObjects[i]._activated == true) {
+                powerupObjects.splice(i, 1);
+                i = 0;
+            }
+            else if (powerupObjects[i]._type == PowerupType.Speedup) {
+                powerupObjects[i]._timeLeft -= timeElapsed;
+                if (powerupObjects[i]._timeLeft < 0) {
+                    powerupObjects[i].disablePowerup();
+                    powerupObjects.splice(i, 1);
+                    i = 0;
+                }
+            }
+        }
+        /*powerupObjects = powerupObjects.forEach(function (obj: Powerup) {
+            if (obj._type == PowerupType.Duplicate && obj._activated == true)
+                return false;
+            else if (obj._type == PowerupType.Speedup) {
+                obj._timeLeft -= timeElapsed;
+                if (obj._timeLeft < 0) {
+                    obj.disablePowerup();
+                    return false;
+                }
+                else
+                    return true;
+            }
+            return true;
+        });*/
+        
         var newplayerObjects = playerObjects.filter(function(obj: GameObject) {
-        if ((Math.abs(obj._position[2] - bee._position[2]) < 5) && (Math.abs(obj._position[0] - bee._position[0]) < 2))
+        if ((Math.abs(obj._position[2] - bird._position[2]) < 5) && (Math.abs(obj._position[0] - bird._position[0]) < 2))
                 return false;
             return true;
         });
@@ -444,13 +547,13 @@ module Game {
         for (let obj of playerObjects) {
             obj.draw(animation);
         }
+        for (let obj of powerupObjects) {
+            obj.draw(animation);
+        }
         for (let obj of sidewallObjects) {
             obj.draw(animation);
         }
-        bee.draw(animation);
-        for (let obj of gameObjects) {
-            obj.draw(animation);
-        }
+        bird.draw(animation);
         for (let obj of wallObjects) {
             obj.draw(animation);
         }
