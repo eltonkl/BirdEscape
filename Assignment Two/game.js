@@ -158,7 +158,7 @@ var Game;
             this._activated = true;
             switch (this._type) {
                 case PowerupType.Duplicate:
-                    playerObjects.push(new Player(s_sphere, ballTex, [2.5, 2.5, 2.5], undefined, undefined, [0, 5, z + 5], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
+                    playerObjects.push(new Player(s_sphere, this._mat, [2.5, 2.5, 2.5], undefined, undefined, [0, 5, z + 5], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
                     break;
                 case PowerupType.Speedup:
                     CUR_HORIZONTAL_VELOCITY = MAX_HORIZONTAL_VELOCITY;
@@ -293,7 +293,7 @@ var Game;
     var bird;
     var gameTime = 0.0;
     // 1st parameter:  Color (4 floats in RGBA format), 2nd: Ambient light, 3rd: Diffuse reflectivity, 4th: Specular reflectivity, 5th: Smoothness exponent, 6th: Texture image.
-    var purplePlastic = new Material(vec4(.9, .5, .9, 1), .5, .8, .8, 40, null), greyPlastic = new Material(vec4(.5, .5, .5, 1), .8, .8, .8, 20, null), lightGreyPlastic = new Material(vec4(.7, .7, .7, 1), .2, .4, .5, 20, null), brownPlastic = new Material(vec4(0.7, 0.4, 0, 1), .4, 0.1, 0.1, 20, null), greenPlastic = new Material(vec4(0.1, 0.95, 0.1), .45, .8, .8, 30, null), redPlastic = new Material(vec4(0.95, 0.1, 0.1), .45, .5, .5, 30, null), yellowPlastic = new Material(vec4(0.9, 0.9, 0.1), .45, .5, .5, 30, null), earth = new Material(vec4(.5, .5, .5, 1), .5, 1, .5, 40, "earth.gif"), stars = new Material(vec4(.5, .5, .5, 1), .5, 1, 1, 40, "stars.png"), wallTex = new Material(vec4(.5, .5, .5, 1), .7, 0.4, 0.6, 30, "wall.png"), ballTex = new Material(vec4(.5, .5, .5, 1), .7, 0.4, 0.6, 30, "ball.png");
+    var purplePlastic = new Material(vec4(.9, .5, .9, 1), .5, .8, .8, 40, null), greyPlastic = new Material(vec4(.5, .5, .5, 1), .8, .8, .8, 20, null), lightGreyPlastic = new Material(vec4(.7, .7, .7, 1), .2, .4, .5, 20, null), brownPlastic = new Material(vec4(0.7, 0.4, 0, 1), .4, 0.1, 0.1, 20, null), greenPlastic = new Material(vec4(0.1, 0.95, 0.1), .45, .8, .8, 30, null), redPlastic = new Material(vec4(0.95, 0.1, 0.1), .45, .5, .5, 30, null), yellowPlastic = new Material(vec4(0.9, 0.9, 0.1), .45, .5, .5, 30, null), earth = new Material(vec4(.5, .5, .5, 1), .5, 1, .5, 40, "earth.gif"), stars = new Material(vec4(.5, .5, .5, 1), .5, 1, 1, 40, "stars.png"), wallTex = new Material(vec4(.5, .5, .5, 1), .5, 0.4, 0.2, 30, "wall.png"), ballTex = new Material(vec4(.5, .5, .5, 1), .7, 0.4, 0.6, 30, "ball.png"), speedTex = new Material(vec4(.5, .5, .5, 1), .9, 0.6, 0.9, 30, "speed.png");
     var s_cube;
     var s_teapot;
     var s_axis;
@@ -322,10 +322,27 @@ var Game;
     function createPowerup(z) {
         switch (randomInclusive(0, 1)) {
             case 0:
-                powerupObjects.push(new Powerup(s_pyramid, earth, [4, 4, 4], [randomInclusive(-30, 30), 4, z], PowerupType.Duplicate));
+                switch (randomInclusive(1, 5)) {
+                    case 1:
+                        var tex = stars;
+                        break;
+                    case 2:
+                        var tex = earth;
+                        break;
+                    case 3:
+                        var tex = purplePlastic;
+                        break;
+                    case 4:
+                        var tex = lightGreyPlastic;
+                        break;
+                    case 5:
+                        var tex = yellowPlastic;
+                        break;
+                }
+                powerupObjects.push(new Powerup(s_pyramid, tex, [4, 4, 4], [randomInclusive(-30, 30), 4, z], PowerupType.Duplicate));
                 break;
             case 1:
-                powerupObjects.push(new Powerup(s_cube, stars, [4, 4, 4], [randomInclusive(-30, 30), 4, z], PowerupType.Speedup));
+                powerupObjects.push(new Powerup(s_cube, speedTex, [4, 4, 4], [randomInclusive(-30, 30), 4, z], PowerupType.Speedup));
                 break;
         }
     }
@@ -372,8 +389,8 @@ var Game;
         bird = new Bird([1, 1, 1], undefined, undefined, [0, 8, 15], [0, 0, -7], undefined, [0, 0, -0.75]);
         for (var i = 40; i > -15; i--) {
             sidewallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5 * i]));
-            sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [FLOOR_WIDTH / 2 + 2.5, 10, -5 * i]));
-            sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [-(FLOOR_WIDTH / 2 + 2.5), 10, -5 * i]));
+            sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 10, 5], undefined, undefined, [FLOOR_WIDTH / 2 + 2.5, 10, -5 * i]));
+            sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 10, 5], undefined, undefined, [-(FLOOR_WIDTH / 2 + 2.5), 10, -5 * i]));
         }
         for (var i = 10; i > -5; i--) {
             Array.prototype.push.apply(wallObjects, generateWalls(-25 * i + 12.5));

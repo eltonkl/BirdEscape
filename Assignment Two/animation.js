@@ -15,7 +15,7 @@ function CURRENT_BASIS_IS_WORTH_SHOWING(self, model_transform) { self.m_axis.dra
 // *******************************************************
 // IMPORTANT -- In the line below, add the filenames of any new images you want to include for textures!
 
-var texture_filenames_to_load = ["stars.png", "text.png", "earth.gif", "wall.png", "ball.png"];
+var texture_filenames_to_load = ["stars.png", "text.png", "earth.gif", "wall.png", "ball.png", "speed.png"];
 
 // *******************************************************	
 // When the web page's window loads it creates an "Animation" object.  It registers itself as a displayable object to our other class "GL_Context" -- which OpenGL is told to call upon every time a
