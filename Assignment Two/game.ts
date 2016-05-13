@@ -250,11 +250,11 @@ module Game {
         s_pyramid = new pyramid();
         s_wall = new wall();
         
-        animation.graphicsState.camera_transform = lookAt(camera_pos, [0, 10, 0], [0, 1, 0]);
+        animation.graphicsState.camera_transform = lookAt(camera_pos, [0, 0, 0], [0, 1, 0]);
         playerObjects.push(new GameObject(s_sphere, earth, [2.5, 2.5, 2.5], undefined, undefined,
                                         [0, 5, 0], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
         last_z_pos = 0;
-        bee = new Bee([1, 1, 1], undefined, undefined, [0, 8, 30], [0, 0, -4], undefined, [0, 0, -0.01]);
+        bee = new Bee([1, 1, 1], undefined, undefined, [0, 8, 30], [0, 0, -4], undefined, [0, 0, -0.005]);
         for (let i = 40; i > -15; i--) {
             wallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5*i]));
             wallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [FLOOR_WIDTH/2 + 2.5, 10, -5*i]));
@@ -282,23 +282,6 @@ module Game {
     }
     
     function simulateWorld(animation: any, timeElapsed: number): void {
-        let maxIndex = 0;
-        playerObjects.forEach(function(obj: GameObject, index: number) {
-            if (obj._position[2] > playerObjects[maxIndex]._position[2])
-                maxIndex = index;
-        });
-        
-        let currentWall: number = Math.floor(playerObjects[maxIndex]._position[2]);
-        if (currentWall % 5 == 0 && currentWall != previousWall) {
-            previousWall = currentWall;
-            let new_z = wallObjects[0]._position[2] - 5;
-            for (let i = 0; i < 3; i++) {
-                let cur = wallObjects.pop();
-                cur._position[2] = new_z;
-                cur.updateState(0.0);
-                wallObjects.unshift(cur);
-            }
-        }
         for (let obj of playerObjects) {
             obj.updateState(timeElapsed);
         }
@@ -323,25 +306,43 @@ module Game {
             obj.updateState(0.0);
         }
         bee.updateState(timeElapsed);
-
-       var newObj = playerObjects.filter(function(obj: GameObject) {
-            //console.log((Math.abs(obj._position[2] - bee._position[2])));
-            //console.log(obj._position[2]);
-            //console.log(bee._position[2]);
-            if ((Math.abs(obj._position[2] - bee._position[2]) < 5) && (Math.abs(obj._position[0] - bee._position[0]) < 2))
+        
+        let maxIndex = 0;
+        playerObjects.forEach(function(obj: GameObject, index: number) {
+            if (obj._position[2] > playerObjects[maxIndex]._position[2])
+                maxIndex = index;
+        });
+        
+        let min = 0;
+        for (let i = wallObjects.length - 1; i >= min;) {
+            if (wallObjects[i]._position[2] > playerObjects[maxIndex]._position[2] + 75) {
+                min += 3;
+                let new_z = wallObjects[0]._position[2] - 5;
+                for (let j = 0; j < 3; j++) {
+                    let cur = wallObjects.pop();
+                    cur._position[2] = new_z;
+                    cur.updateState(0.0);
+                    wallObjects.unshift(cur);
+                }
+            }
+            else
+                break;
+        }
+        
+        let pos_diff = playerObjects[maxIndex]._position[2] - last_z_pos;
+        last_z_pos = playerObjects[maxIndex]._position[2];
+        camera_pos[2] += pos_diff;
+        animation.graphicsState.camera_transform = lookAt(camera_pos, [playerObjects[maxIndex]._position[0]/2, playerObjects[maxIndex]._position[1] - 5, playerObjects[maxIndex]._position[2]], [0, 1, 0])
+        
+        var newplayerObjects = playerObjects.filter(function(obj: GameObject) {
+        if ((Math.abs(obj._position[2] - bee._position[2]) < 5) && (Math.abs(obj._position[0] - bee._position[0]) < 2))
                 return false;
             return true;
         });
-        if (newObj.length == 0)
-        {
-            console.log("ha");
-            asdf;
+        if (newplayerObjects.length == 0) {
+            //alert("You died. Press okay to restart.");
+            //location.reload();
         }
-        
-        let pos_diff = playerObjects[0]._position[2] - last_z_pos;
-        last_z_pos = playerObjects[0]._position[2];
-        camera_pos[2] += pos_diff;
-        animation.graphicsState.camera_transform = lookAt(camera_pos, [playerObjects[0]._position[0]/2, playerObjects[0]._position[1] - 5, playerObjects[0]._position[2]], [0, 1, 0]);
         gameTime += timeElapsed;
     }
 

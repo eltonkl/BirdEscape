@@ -206,10 +206,10 @@ var Game;
         s_cylinder = new cylindrical_strip(10, mat4());
         s_pyramid = new pyramid();
         s_wall = new wall();
-        animation.graphicsState.camera_transform = lookAt(camera_pos, [0, 10, 0], [0, 1, 0]);
+        animation.graphicsState.camera_transform = lookAt(camera_pos, [0, 0, 0], [0, 1, 0]);
         playerObjects.push(new GameObject(s_sphere, earth, [2.5, 2.5, 2.5], undefined, undefined, [0, 5, 0], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
         last_z_pos = 0;
-        bee = new Bee([1, 1, 1], undefined, undefined, [0, 8, 30], [0, 0, -4], undefined, [0, 0, -0.01]);
+        bee = new Bee([1, 1, 1], undefined, undefined, [0, 8, 30], [0, 0, -4], undefined, [0, 0, -0.005]);
         for (var i = 40; i > -15; i--) {
             wallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5 * i]));
             wallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [FLOOR_WIDTH / 2 + 2.5, 10, -5 * i]));
@@ -243,22 +243,6 @@ var Game;
     }
     Game.gameLoop = gameLoop;
     function simulateWorld(animation, timeElapsed) {
-        var maxIndex = 0;
-        playerObjects.forEach(function (obj, index) {
-            if (obj._position[2] > playerObjects[maxIndex]._position[2])
-                maxIndex = index;
-        });
-        var currentWall = Math.floor(playerObjects[maxIndex]._position[2]);
-        if (currentWall % 5 == 0 && currentWall != previousWall) {
-            previousWall = currentWall;
-            var new_z = wallObjects[0]._position[2] - 5;
-            for (var i = 0; i < 3; i++) {
-                var cur = wallObjects.pop();
-                cur._position[2] = new_z;
-                cur.updateState(0.0);
-                wallObjects.unshift(cur);
-            }
-        }
         for (var _i = 0, playerObjects_1 = playerObjects; _i < playerObjects_1.length; _i++) {
             var obj = playerObjects_1[_i];
             obj.updateState(timeElapsed);
@@ -285,20 +269,37 @@ var Game;
             obj.updateState(0.0);
         }
         bee.updateState(timeElapsed);
-        var newObj = playerObjects.filter(function (obj) {
-            //console.log((Math.abs(obj._position[2] - bee._position[2])));
-            //console.log(obj._position[2]);
-            //console.log(bee._position[2]);
+        var maxIndex = 0;
+        playerObjects.forEach(function (obj, index) {
+            if (obj._position[2] > playerObjects[maxIndex]._position[2])
+                maxIndex = index;
+        });
+        var min = 0;
+        for (var i = wallObjects.length - 1; i >= min;) {
+            if (wallObjects[i]._position[2] > playerObjects[maxIndex]._position[2] + 75) {
+                min += 3;
+                var new_z = wallObjects[0]._position[2] - 5;
+                for (var j = 0; j < 3; j++) {
+                    var cur = wallObjects.pop();
+                    cur._position[2] = new_z;
+                    cur.updateState(0.0);
+                    wallObjects.unshift(cur);
+                }
+            }
+            else
+                break;
+        }
+        var pos_diff = playerObjects[maxIndex]._position[2] - last_z_pos;
+        last_z_pos = playerObjects[maxIndex]._position[2];
+        camera_pos[2] += pos_diff;
+        animation.graphicsState.camera_transform = lookAt(camera_pos, [playerObjects[maxIndex]._position[0] / 2, playerObjects[maxIndex]._position[1] - 5, playerObjects[maxIndex]._position[2]], [0, 1, 0]);
+        var newplayerObjects = playerObjects.filter(function (obj) {
             if ((Math.abs(obj._position[2] - bee._position[2]) < 5) && (Math.abs(obj._position[0] - bee._position[0]) < 2))
                 return false;
             return true;
         });
-        if (newObj.length == 0)
-            console.log("ha");
-        var pos_diff = playerObjects[0]._position[2] - last_z_pos;
-        last_z_pos = playerObjects[0]._position[2];
-        camera_pos[2] += pos_diff;
-        animation.graphicsState.camera_transform = lookAt(camera_pos, [playerObjects[0]._position[0] / 2, playerObjects[0]._position[1] - 5, playerObjects[0]._position[2]], [0, 1, 0]);
+        if (newplayerObjects.length == 0) {
+        }
         gameTime += timeElapsed;
     }
     function render(animation) {
