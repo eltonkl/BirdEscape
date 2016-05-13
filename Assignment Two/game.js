@@ -207,9 +207,9 @@ var Game;
         s_pyramid = new pyramid();
         s_wall = new wall();
         animation.graphicsState.camera_transform = lookAt(camera_pos, [0, 10, 0], [0, 1, 0]);
-        playerObjects.push(new GameObject(s_sphere, earth, [2.5, 2.5, 2.5], [0, 5, 0], [0, 0, 0], undefined, [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
+        playerObjects.push(new GameObject(s_sphere, earth, [2.5, 2.5, 2.5], undefined, undefined, [0, 5, 0], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
         last_z_pos = 0;
-        bee = new Bee([1, 1, 1], [0, 8, 30], undefined, [0, 0, 0], [0, 0, -4], undefined, [0, 0, -0.01]);
+        bee = new Bee([1, 1, 1], undefined, undefined, [0, 8, 30], [0, 0, -4], undefined, [0, 0, -0.01]);
         for (var i = 40; i > -15; i--) {
             wallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5 * i]));
             wallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [FLOOR_WIDTH / 2 + 2.5, 10, -5 * i]));
@@ -285,10 +285,20 @@ var Game;
             obj.updateState(0.0);
         }
         bee.updateState(timeElapsed);
+        var newObj = playerObjects.filter(function (obj) {
+            //console.log((Math.abs(obj._position[2] - bee._position[2])));
+            //console.log(obj._position[2]);
+            //console.log(bee._position[2]);
+            if ((Math.abs(obj._position[2] - bee._position[2]) < 5) && (Math.abs(obj._position[0] - bee._position[0]) < 2))
+                return false;
+            return true;
+        });
+        if (newObj.length == 0)
+            console.log("ha");
         var pos_diff = playerObjects[0]._position[2] - last_z_pos;
         last_z_pos = playerObjects[0]._position[2];
         camera_pos[2] += pos_diff;
-        animation.graphicsState.camera_transform = lookAt(camera_pos, [playerObjects[0]._position[0] / 2, playerObjects[0]._position[1], playerObjects[0]._position[2]], [0, 1, 0]);
+        animation.graphicsState.camera_transform = lookAt(camera_pos, [playerObjects[0]._position[0] / 2, playerObjects[0]._position[1] - 5, playerObjects[0]._position[2]], [0, 1, 0]);
         gameTime += timeElapsed;
     }
     function render(animation) {
