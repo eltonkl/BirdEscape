@@ -322,10 +322,10 @@ var Game;
     function createPowerup(z) {
         switch (randomInclusive(0, 1)) {
             case 0:
-                powerupObjects.push(new Powerup(s_pyramid, earth, [4, 4, 4], [0, 4, z], PowerupType.Duplicate));
+                powerupObjects.push(new Powerup(s_pyramid, earth, [4, 4, 4], [randomInclusive(-25, 25), 4, z], PowerupType.Duplicate));
                 break;
             case 1:
-                powerupObjects.push(new Powerup(s_cube, stars, [4, 4, 4], [0, 4, z], PowerupType.Speedup));
+                powerupObjects.push(new Powerup(s_cube, stars, [4, 4, 4], [randomInclusive(-25, 25), 4, z], PowerupType.Speedup));
                 break;
         }
     }
@@ -378,7 +378,7 @@ var Game;
         for (var i = 10; i > -5; i--) {
             Array.prototype.push.apply(wallObjects, generateWalls(-25 * i + 12.5));
         }
-        for (var i = 10; i > 0; i--) {
+        for (var i = 15; i > 0; i--) {
             createPowerup(-100 * i);
         }
     }
@@ -469,7 +469,7 @@ var Game;
         for (var i = 0; i < powerupObjects.length - 1; i++) {
             if (powerupObjects[i]._type == PowerupType.Duplicate && powerupObjects[i]._activated == true) {
                 powerupObjects.splice(i, 1);
-                createPowerup(playerObjects[0]._position[2] - 1000);
+                createPowerup(powerupObjects[powerupObjects.length - 1]._position[2] - 150);
                 i = 0;
             }
             else if (powerupObjects[i]._type == PowerupType.Speedup && powerupObjects[i]._activated == true) {
@@ -477,18 +477,20 @@ var Game;
                 if (powerupObjects[i]._timeLeft < 0) {
                     powerupObjects[i].disablePowerup();
                     powerupObjects.splice(i, 1);
-                    createPowerup(playerObjects[0]._position[2] - 1000);
+                    createPowerup(powerupObjects[powerupObjects.length - 1]._position[2] - 150);
                     i = 0;
                 }
             }
             if (powerupObjects[i]._position[2] > playerObjects[minIndex]._position[2] + 250) {
                 powerupObjects.splice(i, 1);
-                createPowerup(playerObjects[0]._position[2] - 1000);
+                createPowerup(powerupObjects[powerupObjects.length - 1]._position[2] - 150);
             }
         }
         playerObjects = playerObjects.filter(function (obj) {
-            if ((Math.abs(obj._position[2] - bird._position[2]) < 5) && (Math.abs(obj._position[0] - bird._position[0]) < 2))
+            if ((Math.abs(obj._position[2] - bird._position[2]) < 5) && (Math.abs(obj._position[0] - bird._position[0]) < 2)) {
+                bird._velocity[2] = -7;
                 return false;
+            }
             return true;
         });
         if (playerObjects.length == 0) {

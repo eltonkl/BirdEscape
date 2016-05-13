@@ -53,7 +53,7 @@ void main()
 		L[i] = normalize( ( camera_transform * lightPosition[i] ).xyz - lightPosition[i].w * pos );		// Use w = 0 for a directional light -- a vector instead of a point.   
 		H[i] = normalize( L[i] + E );
 		
-		dist[i]  = distance((camera_transform * lightPosition[i]).xyz, pos);
+		dist[i]  = 1.0;
 	}
 
 	if( GOURAUD )
