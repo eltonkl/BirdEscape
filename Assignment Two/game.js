@@ -79,6 +79,7 @@ var Game;
         Player.prototype.updateState = function (timeElapsed) {
             var oldZ = this._position[2];
             var oldXRotation = this._rotation[0];
+            this._velocity[2] = -PLAYER_CURRENT_Z_VELOCITY;
             for (var i = wallObjects.length - 1; i > 0; i--) {
                 var rightX = wallObjects[i]._position[0] + wallObjects[i]._scale[0] / 2;
                 var leftX = wallObjects[i]._position[0] - wallObjects[i]._scale[0] / 2;
@@ -148,19 +149,20 @@ var Game;
             if (position === void 0) { position = [0, 0, 0]; }
             _super.call(this, shape, material, scale, undefined, undefined, position, undefined, undefined, undefined, undefined, undefined, undefined);
             this._type = type;
-            this._timeLeft = 25;
+            this._timeLeft = 7;
             this._activated = false;
         }
-        Powerup.prototype.enablePowerup = function (maxIndex) {
+        Powerup.prototype.enablePowerup = function (z) {
             if (this._activated)
                 return;
             this._activated = true;
             switch (this._type) {
                 case PowerupType.Duplicate:
-                    playerObjects.push(new Player(s_sphere, ballTex, [2.5, 2.5, 2.5], undefined, undefined, [0, 5, playerObjects[maxIndex]._position[2] + 5], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
+                    playerObjects.push(new Player(s_sphere, ballTex, [2.5, 2.5, 2.5], undefined, undefined, [0, 5, z + 5], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
                     break;
                 case PowerupType.Speedup:
                     CUR_HORIZONTAL_VELOCITY = MAX_HORIZONTAL_VELOCITY;
+                    PLAYER_CURRENT_Z_VELOCITY = PLAYER_MAX_Z_VELOCITY;
                     break;
             }
         };
@@ -169,7 +171,12 @@ var Game;
                 case PowerupType.Duplicate:
                     break;
                 case PowerupType.Speedup:
+                    for (var i = 0; i < powerupObjects.length - 1; i++) {
+                        if (powerupObjects[i]._type == PowerupType.Speedup && powerupObjects[i]._timeLeft > 0 && powerupObjects[i]._activated)
+                            return;
+                    }
                     CUR_HORIZONTAL_VELOCITY = NORMAL_HORIZONTAL_VELOCITY;
+                    PLAYER_CURRENT_Z_VELOCITY = PLAYER_DEFAULT_Z_VELOCITY;
                     break;
             }
         };
@@ -296,8 +303,10 @@ var Game;
     var s_cylinder;
     var s_pyramid;
     var s_wall;
-    var BIRD_MAXIMUM_Z_DELTA = 0.30;
+    var BIRD_MAXIMUM_Z_DELTA = 4;
     var PLAYER_DEFAULT_Z_VELOCITY = 15;
+    var PLAYER_MAX_Z_VELOCITY = 30;
+    var PLAYER_CURRENT_Z_VELOCITY = PLAYER_DEFAULT_Z_VELOCITY;
     var MAX_HORIZONTAL_VELOCITY = 55;
     var NORMAL_HORIZONTAL_VELOCITY = 30;
     var CUR_HORIZONTAL_VELOCITY = NORMAL_HORIZONTAL_VELOCITY;
@@ -309,6 +318,16 @@ var Game;
     var previousWall;
     function randomInclusive(min, max) {
         return Math.floor(Math.random() * (max + 1 - min)) + min;
+    }
+    function createPowerup(z) {
+        switch (randomInclusive(0, 1)) {
+            case 0:
+                powerupObjects.push(new Powerup(s_pyramid, earth, [4, 4, 4], [0, 4, z], PowerupType.Duplicate));
+                break;
+            case 1:
+                powerupObjects.push(new Powerup(s_cube, stars, [4, 4, 4], [0, 4, z], PowerupType.Speedup));
+                break;
+        }
     }
     var previousType = 0;
     function generateWalls(z) {
@@ -350,7 +369,7 @@ var Game;
         animation.graphicsState.camera_transform = lookAt(camera_pos, [0, 0, 0], [0, 1, 0]);
         playerObjects.push(new Player(s_sphere, ballTex, [2.5, 2.5, 2.5], undefined, undefined, [0, 5, 0], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
         last_z_pos = 0;
-        bird = new Bird([1, 1, 1], undefined, undefined, [0, 8, 15], [0, 0, -7], undefined, [0, 0, -0.5]);
+        bird = new Bird([1, 1, 1], undefined, undefined, [0, 8, 15], [0, 0, -7], undefined, [0, 0, -0.75]);
         for (var i = 40; i > -15; i--) {
             sidewallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5 * i]));
             sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [FLOOR_WIDTH / 2 + 2.5, 10, -5 * i]));
@@ -359,15 +378,8 @@ var Game;
         for (var i = 10; i > -5; i--) {
             Array.prototype.push.apply(wallObjects, generateWalls(-25 * i + 12.5));
         }
-        for (var i = 20; i > 0; i--) {
-            switch (randomInclusive(0, 1)) {
-                case 0:
-                    powerupObjects.push(new Powerup(s_pyramid, earth, [4, 4, 4], [0, 4, -75 * i], PowerupType.Duplicate));
-                    break;
-                case 1:
-                    powerupObjects.push(new Powerup(s_cube, stars, [4, 4, 4], [0, 4, -75 * i], PowerupType.Speedup));
-                    break;
-            }
+        for (var i = 10; i > 0; i--) {
+            createPowerup(-100 * i);
         }
     }
     Game.initializeGame = initializeGame;
@@ -411,9 +423,12 @@ var Game;
             obj.updateState(timeElapsed);
         }
         var maxIndex = 0;
+        var minIndex = 0;
         playerObjects.forEach(function (obj, index) {
             if (obj._position[2] < playerObjects[maxIndex]._position[2])
                 maxIndex = index;
+            if (obj._position[2] > playerObjects[maxIndex]._position[2])
+                minIndex = index;
         });
         var min = 0;
         for (var i = sidewallObjects.length - 1; i >= min;) {
@@ -445,45 +460,40 @@ var Game;
             for (var _d = 0, powerupObjects_2 = powerupObjects; _d < powerupObjects_2.length; _d++) {
                 var obj2 = powerupObjects_2[_d];
                 if ((Math.abs(obj._position[2] - obj2._position[2]) < 3) && (Math.abs(obj._position[0] - obj2._position[0]) < 3)) {
-                    obj2.enablePowerup(maxIndex);
-                    obj2._position[2] = 5;
+                    obj2.enablePowerup(obj._position[2]);
+                    obj2._position[2] = -500000;
+                    obj2._position[1] = -50;
                 }
             }
         }
         for (var i = 0; i < powerupObjects.length - 1; i++) {
             if (powerupObjects[i]._type == PowerupType.Duplicate && powerupObjects[i]._activated == true) {
                 powerupObjects.splice(i, 1);
+                createPowerup(playerObjects[0]._position[2] - 1000);
                 i = 0;
             }
-            else if (powerupObjects[i]._type == PowerupType.Speedup) {
+            else if (powerupObjects[i]._type == PowerupType.Speedup && powerupObjects[i]._activated == true) {
                 powerupObjects[i]._timeLeft -= timeElapsed;
                 if (powerupObjects[i]._timeLeft < 0) {
                     powerupObjects[i].disablePowerup();
                     powerupObjects.splice(i, 1);
+                    createPowerup(playerObjects[0]._position[2] - 1000);
                     i = 0;
                 }
             }
-        }
-        /*powerupObjects = powerupObjects.forEach(function (obj: Powerup) {
-            if (obj._type == PowerupType.Duplicate && obj._activated == true)
-                return false;
-            else if (obj._type == PowerupType.Speedup) {
-                obj._timeLeft -= timeElapsed;
-                if (obj._timeLeft < 0) {
-                    obj.disablePowerup();
-                    return false;
-                }
-                else
-                    return true;
+            if (powerupObjects[i]._position[2] > playerObjects[minIndex]._position[2] + 250) {
+                powerupObjects.splice(i, 1);
+                createPowerup(playerObjects[0]._position[2] - 1000);
             }
-            return true;
-        });*/
-        var newplayerObjects = playerObjects.filter(function (obj) {
+        }
+        playerObjects = playerObjects.filter(function (obj) {
             if ((Math.abs(obj._position[2] - bird._position[2]) < 5) && (Math.abs(obj._position[0] - bird._position[0]) < 2))
                 return false;
             return true;
         });
-        if (newplayerObjects.length == 0) {
+        if (playerObjects.length == 0) {
+            alert("You died. Press okay to restart.");
+            location.reload();
         }
         gameTime += timeElapsed;
     }
