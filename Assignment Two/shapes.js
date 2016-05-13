@@ -204,13 +204,17 @@ function cube(points_transform) {
 }
 inherit(cube, shape);
 
-cube.prototype.populate = function (recipient, points_transform) {
+cube.prototype.populate = function (recipient, points_transform) 
+{
     var m_strip = new rectangular_strip();
-    for (var i = 0; i < 3; i++)										// Build a cube by inserting six triangle strips into the lists.
-        for (var j = 0; j < 2; j++)
-            m_strip.populate(recipient, 1, mult(points_transform, mult(rotation(90, vec3(i == 0, i == 1, i == 2)), translation(j - .5, 0, 0))));
+    for (var i = 0; i < 3; i++)		// Build a cube by inserting six triangle strips into the lists.
+        for (var j = 0; j < 2; j++) {
+            var transform = translation(-.5, 0, 0);                        // Left
+            transform = mult(rotation(180 * j, vec3(0, 0, 1)), transform); // Right if j
+            transform = mult(rotation(90, vec3(i == 0, -(i == 1), i == 2)), transform); // rotate to match face
+            m_strip.populate(recipient, 1, transform);
+        }
 }
-
 
 function sphere(points_transform, max_subdivisions)		// Build a complicated sphere using subdivision, starting with a simple tetrahedron.  
 {

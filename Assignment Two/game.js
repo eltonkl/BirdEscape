@@ -46,12 +46,12 @@ var Game;
                 }
             }
             this._transform = mult(mat4(), translation(this._position[0], this._position[1], this._position[2]));
-            if (this._rotation[1] != 0)
-                this._transform = mult(this._transform, rotation(this._rotation[1], 0, 1, 0));
             if (this._rotation[0] != 0)
                 this._transform = mult(this._transform, rotation(this._rotation[0], 1, 0, 0));
             if (this._rotation[2] != 0)
                 this._transform = mult(this._transform, rotation(this._rotation[2], 0, 0, 1));
+            if (this._rotation[1] != 0)
+                this._transform = mult(this._transform, rotation(this._rotation[1], 0, 1, 0));
             if (this._rotateAbout != [0, 0, 0])
                 this._transform = mult(this._transform, translation(this._rotateAbout[0], this._rotateAbout[1], this._rotateAbout[2]));
             this._transform = mult(this._transform, scale(this._scale[0], this._scale[1], this._scale[2]));
@@ -61,6 +61,68 @@ var Game;
         };
         return GameObject;
     }());
+    var Player = (function (_super) {
+        __extends(Player, _super);
+        function Player(shape, material, scale, rotateAbout, rotation, position, velocity, angularVelocity, acceleration, angularAcceleration, rotateAboutVelocity, rotateAboutAcceleration) {
+            if (scale === void 0) { scale = [1, 1, 1]; }
+            if (rotateAbout === void 0) { rotateAbout = [0, 0, 0]; }
+            if (rotation === void 0) { rotation = [0, 0, 0]; }
+            if (position === void 0) { position = [0, 0, 0]; }
+            if (velocity === void 0) { velocity = [0, 0, 0]; }
+            if (angularVelocity === void 0) { angularVelocity = [0, 0, 0]; }
+            if (acceleration === void 0) { acceleration = [0, 0, 0]; }
+            if (angularAcceleration === void 0) { angularAcceleration = [0, 0, 0]; }
+            if (rotateAboutVelocity === void 0) { rotateAboutVelocity = [0, 0, 0]; }
+            if (rotateAboutAcceleration === void 0) { rotateAboutAcceleration = [0, 0, 0]; }
+            _super.call(this, shape, material, scale, rotateAbout, rotation, position, velocity, angularVelocity, acceleration, angularAcceleration, rotateAboutVelocity, rotateAboutAcceleration);
+        }
+        Player.prototype.updateState = function (timeElapsed) {
+            var oldZ = this._position[2];
+            var oldXRotation = this._rotation[0];
+            _super.prototype.updateState.call(this, timeElapsed);
+            for (var i = 0; i < wallObjects.length - 1 && wallObjects[i]._position[2] < this._position[2]; i++) {
+                var rightX = wallObjects[i]._position[0] + wallObjects[i]._scale[0] / 2;
+                var leftX = wallObjects[i]._position[0] - wallObjects[i]._scale[0] / 2;
+                if ((wallObjects[i]._position[2] - this._position[2]) > -3
+                    && this._position[0] > leftX && this._position[0] < rightX) {
+                    this._position[2] = oldZ;
+                    break;
+                }
+            }
+            this._acceleration[0] = 0;
+            if (this._velocity[0] > CUR_HORIZONTAL_VELOCITY)
+                this._velocity[0] = CUR_HORIZONTAL_VELOCITY;
+            else if (this._velocity[0] < -CUR_HORIZONTAL_VELOCITY)
+                this._velocity[0] = -CUR_HORIZONTAL_VELOCITY;
+            if (Math.abs(this._position[0]) > MAX_HORIZONTAL_POSITION) {
+                if (this._position[0] > MAX_HORIZONTAL_POSITION)
+                    this._position[0] = MAX_HORIZONTAL_POSITION;
+                else if (this._position[0] < -MAX_HORIZONTAL_POSITION)
+                    this._position[0] = -MAX_HORIZONTAL_POSITION;
+                this._velocity[0] = 0;
+                this._acceleration[0] = 0;
+            }
+            if (this._velocity[0] < 0)
+                this._rotation[1] += -180 * timeElapsed;
+            else if (this._velocity[0] > 0)
+                this._rotation[1] += 180 * timeElapsed;
+            this._rotation[0] = oldXRotation + (180 / Math.PI * (this._position[2] - oldZ) / 2.5);
+            _super.prototype.updateState.call(this, 0.0);
+        };
+        return Player;
+    }(GameObject));
+    var Wall = (function (_super) {
+        __extends(Wall, _super);
+        function Wall(shape, material, scale, position) {
+            if (scale === void 0) { scale = [1, 1, 1]; }
+            if (position === void 0) { position = [0, 0, 0]; }
+            _super.call(this, shape, material, scale, undefined, undefined, position, undefined, undefined, undefined, undefined, undefined, undefined);
+        }
+        Wall.prototype.updateState = function (timeElapsed) {
+            _super.prototype.updateState.call(this, timeElapsed);
+        };
+        return Wall;
+    }(GameObject));
     var Bee = (function (_super) {
         __extends(Bee, _super);
         function Bee(scale, rotateAbout, rotation, position, velocity, angularVelocity, acceleration, angularAcceleration, rotateAboutVelocity, rotateAboutAcceleration) {
@@ -171,12 +233,13 @@ var Game;
         return Bee;
     }(GameObject));
     var playerObjects = [];
-    var wallObjects = [];
+    var sidewallObjects = [];
     var gameObjects = [];
+    var wallObjects = [];
     var bee;
     var gameTime = 0.0;
     // 1st parameter:  Color (4 floats in RGBA format), 2nd: Ambient light, 3rd: Diffuse reflectivity, 4th: Specular reflectivity, 5th: Smoothness exponent, 6th: Texture image.
-    var purplePlastic = new Material(vec4(.9, .5, .9, 1), .5, .8, .8, 40, null), greyPlastic = new Material(vec4(.5, .5, .5, 1), .8, .8, .8, 20, null), lightGreyPlastic = new Material(vec4(.7, .7, .7, 1), .2, .4, .5, 20, null), brownPlastic = new Material(vec4(0.7, 0.4, 0, 1), .4, 0.1, 0.1, 20, null), greenPlastic = new Material(vec4(0.1, 0.95, 0.1), .45, .8, .8, 30, null), redPlastic = new Material(vec4(0.95, 0.1, 0.1), .45, .5, .5, 30, null), yellowPlastic = new Material(vec4(0.9, 0.9, 0.1), .45, .5, .5, 30, null), earth = new Material(vec4(.5, .5, .5, 1), .5, 1, .5, 40, "earth.gif"), stars = new Material(vec4(.5, .5, .5, 1), .5, 1, 1, 40, "stars.png"), wallTex = new Material(vec4(.5, .5, .5, 1), .7, 0.4, 0.6, 30, "wall.png");
+    var purplePlastic = new Material(vec4(.9, .5, .9, 1), .5, .8, .8, 40, null), greyPlastic = new Material(vec4(.5, .5, .5, 1), .8, .8, .8, 20, null), lightGreyPlastic = new Material(vec4(.7, .7, .7, 1), .2, .4, .5, 20, null), brownPlastic = new Material(vec4(0.7, 0.4, 0, 1), .4, 0.1, 0.1, 20, null), greenPlastic = new Material(vec4(0.1, 0.95, 0.1), .45, .8, .8, 30, null), redPlastic = new Material(vec4(0.95, 0.1, 0.1), .45, .5, .5, 30, null), yellowPlastic = new Material(vec4(0.9, 0.9, 0.1), .45, .5, .5, 30, null), earth = new Material(vec4(.5, .5, .5, 1), .5, 1, .5, 40, "earth.gif"), stars = new Material(vec4(.5, .5, .5, 1), .5, 1, 1, 40, "stars.png"), wallTex = new Material(vec4(.5, .5, .5, 1), .7, 0.4, 0.6, 30, "wall.png"), ballTex = new Material(vec4(.5, .5, .5, 1), .7, 0.4, 0.6, 30, "ball.png");
     var s_cube;
     var s_teapot;
     var s_axis;
@@ -186,16 +249,47 @@ var Game;
     var s_cylinder;
     var s_pyramid;
     var s_wall;
-    var BEE_MAXIMUM_Z_DELTA = 0.5;
-    var PLAYER_DEFAULT_Z_VELOCITY = 10;
+    var BEE_MAXIMUM_Z_DELTA = 0.25;
+    var PLAYER_DEFAULT_Z_VELOCITY = 15;
     var MAX_HORIZONTAL_VELOCITY = 45;
-    var CUR_HORIZONTAL_VELOCITY = MAX_HORIZONTAL_VELOCITY;
+    var NORMAL_HORIZONTAL_VELOCITY = 30;
+    var CUR_HORIZONTAL_VELOCITY = NORMAL_HORIZONTAL_VELOCITY;
     var ACCELERATION = 800;
     var FLOOR_WIDTH = 75;
     var MAX_HORIZONTAL_POSITION = (FLOOR_WIDTH / 2) - 2.5;
     var camera_pos = [0, 55, 65];
     var last_z_pos;
     var previousWall;
+    function randomInclusive(min, max) {
+        return Math.floor(Math.random() * (max + 1 - min)) + min;
+    }
+    var previousType = 0;
+    function generateWalls(z) {
+        var length;
+        var currentType;
+        while ((currentType = randomInclusive(0, 4)) == previousType)
+            continue;
+        previousType = currentType;
+        switch (currentType) {
+            case 0:
+                length = randomInclusive(45, FLOOR_WIDTH - 8);
+                return [new Wall(s_cube, brownPlastic, [length, 3, 1], [-(MAX_HORIZONTAL_POSITION + 2.5 - length / 2), 4, z])];
+            case 1:
+                length = randomInclusive(45, FLOOR_WIDTH - 8);
+                return [new Wall(s_cube, brownPlastic, [length, 3, 1], [MAX_HORIZONTAL_POSITION + 2.5 - length / 2, 4, z])];
+            case 2:
+                length = randomInclusive(35, 45);
+                return [new Wall(s_cube, brownPlastic, [length, 3, 1], [-(MAX_HORIZONTAL_POSITION + 2.5 - length / 2), 4, z]),
+                    new Wall(s_cube, brownPlastic, [length / 2, 3, 1], [MAX_HORIZONTAL_POSITION + 2.5 - length / 4, 4, z])];
+            case 3:
+                length = randomInclusive(35, 45);
+                return [new Wall(s_cube, brownPlastic, [length, 3, 1], [MAX_HORIZONTAL_POSITION + 2.5 - length / 2, 4, z]),
+                    new Wall(s_cube, brownPlastic, [length / 2, 3, 1], [-(MAX_HORIZONTAL_POSITION + 2.5 - length / 4), 4, z])];
+            case 4:
+                length = randomInclusive(30, 60);
+                return [new Wall(s_cube, brownPlastic, [length, 3, 1], [0, 4, z])];
+        }
+    }
     function initializeGame(animation) {
         s_cube = new cube(null);
         s_teapot = new shape_from_file("teapot.obj");
@@ -207,13 +301,16 @@ var Game;
         s_pyramid = new pyramid();
         s_wall = new wall();
         animation.graphicsState.camera_transform = lookAt(camera_pos, [0, 0, 0], [0, 1, 0]);
-        playerObjects.push(new GameObject(s_sphere, earth, [2.5, 2.5, 2.5], undefined, undefined, [0, 5, 0], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
+        playerObjects.push(new Player(s_sphere, ballTex, [2.5, 2.5, 2.5], undefined, undefined, [0, 5, 0], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
         last_z_pos = 0;
-        bee = new Bee([1, 1, 1], undefined, undefined, [0, 8, 30], [0, 0, -4], undefined, [0, 0, -0.005]);
+        bee = new Bee([1, 1, 1], undefined, undefined, [0, 8, 40], [0, 0, -4], undefined); // [0, 0, -0.00001]);
         for (var i = 40; i > -15; i--) {
-            wallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5 * i]));
-            wallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [FLOOR_WIDTH / 2 + 2.5, 10, -5 * i]));
-            wallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [-(FLOOR_WIDTH / 2 + 2.5), 10, -5 * i]));
+            sidewallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5 * i]));
+            sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [FLOOR_WIDTH / 2 + 2.5, 10, -5 * i]));
+            sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [-(FLOOR_WIDTH / 2 + 2.5), 10, -5 * i]));
+        }
+        for (var i = 10; i > -5; i--) {
+            Array.prototype.push.apply(wallObjects, generateWalls(-25 * i + 12.5));
         }
     }
     Game.initializeGame = initializeGame;
@@ -251,43 +348,36 @@ var Game;
             var obj = gameObjects_1[_a];
             obj.updateState(timeElapsed);
         }
-        for (var _b = 0, playerObjects_2 = playerObjects; _b < playerObjects_2.length; _b++) {
-            var obj = playerObjects_2[_b];
-            obj._acceleration[0] = 0;
-            if (obj._velocity[0] > CUR_HORIZONTAL_VELOCITY)
-                obj._velocity[0] = CUR_HORIZONTAL_VELOCITY;
-            else if (obj._velocity[0] < -CUR_HORIZONTAL_VELOCITY)
-                obj._velocity[0] = -CUR_HORIZONTAL_VELOCITY;
-            if (Math.abs(obj._position[0]) > MAX_HORIZONTAL_POSITION) {
-                if (obj._position[0] > MAX_HORIZONTAL_POSITION)
-                    obj._position[0] = MAX_HORIZONTAL_POSITION;
-                else if (obj._position[0] < -MAX_HORIZONTAL_POSITION)
-                    obj._position[0] = -MAX_HORIZONTAL_POSITION;
-                obj._velocity[0] = 0;
-                obj._acceleration[0] = 0;
-            }
-            obj.updateState(0.0);
-        }
         bee.updateState(timeElapsed);
+        for (var _b = 0, wallObjects_1 = wallObjects; _b < wallObjects_1.length; _b++) {
+            var obj = wallObjects_1[_b];
+            obj.updateState(timeElapsed);
+        }
         var maxIndex = 0;
         playerObjects.forEach(function (obj, index) {
             if (obj._position[2] > playerObjects[maxIndex]._position[2])
                 maxIndex = index;
         });
         var min = 0;
-        for (var i = wallObjects.length - 1; i >= min;) {
-            if (wallObjects[i]._position[2] > playerObjects[maxIndex]._position[2] + 75) {
+        for (var i = sidewallObjects.length - 1; i >= min;) {
+            if (sidewallObjects[i]._position[2] > playerObjects[maxIndex]._position[2] + 75) {
                 min += 3;
-                var new_z = wallObjects[0]._position[2] - 5;
+                var new_z = sidewallObjects[0]._position[2] - 5;
                 for (var j = 0; j < 3; j++) {
-                    var cur = wallObjects.pop();
+                    var cur = sidewallObjects.pop();
                     cur._position[2] = new_z;
                     cur.updateState(0.0);
-                    wallObjects.unshift(cur);
+                    sidewallObjects.unshift(cur);
                 }
             }
             else
                 break;
+        }
+        for (var i = wallObjects.length - 1; wallObjects[i]._position[2] > playerObjects[maxIndex]._position[2] + 75; i = wallObjects.length - 1) {
+            var currentZ = wallObjects[i]._position[2];
+            while (wallObjects[wallObjects.length - 1]._position[2] == currentZ)
+                wallObjects.pop();
+            Array.prototype.unshift.apply(wallObjects, generateWalls(wallObjects[0]._position[2] - 25));
         }
         var pos_diff = playerObjects[maxIndex]._position[2] - last_z_pos;
         last_z_pos = playerObjects[maxIndex]._position[2];
@@ -303,17 +393,21 @@ var Game;
         gameTime += timeElapsed;
     }
     function render(animation) {
-        for (var _i = 0, playerObjects_3 = playerObjects; _i < playerObjects_3.length; _i++) {
-            var obj = playerObjects_3[_i];
+        for (var _i = 0, playerObjects_2 = playerObjects; _i < playerObjects_2.length; _i++) {
+            var obj = playerObjects_2[_i];
             obj.draw(animation);
         }
-        for (var _a = 0, wallObjects_1 = wallObjects; _a < wallObjects_1.length; _a++) {
-            var obj = wallObjects_1[_a];
+        for (var _a = 0, sidewallObjects_1 = sidewallObjects; _a < sidewallObjects_1.length; _a++) {
+            var obj = sidewallObjects_1[_a];
             obj.draw(animation);
         }
         bee.draw(animation);
         for (var _b = 0, gameObjects_2 = gameObjects; _b < gameObjects_2.length; _b++) {
             var obj = gameObjects_2[_b];
+            obj.draw(animation);
+        }
+        for (var _c = 0, wallObjects_2 = wallObjects; _c < wallObjects_2.length; _c++) {
+            var obj = wallObjects_2[_c];
             obj.draw(animation);
         }
     }

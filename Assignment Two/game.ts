@@ -57,12 +57,12 @@ module Game {
             }
             
             this._transform = mult(mat4(), translation(this._position[0], this._position[1], this._position[2]));
-            if (this._rotation[1] != 0)
-                this._transform = mult(this._transform, rotation(this._rotation[1], 0, 1, 0));
             if (this._rotation[0] != 0)
                 this._transform = mult(this._transform, rotation(this._rotation[0], 1, 0, 0));
             if (this._rotation[2] != 0)
                 this._transform = mult(this._transform, rotation(this._rotation[2], 0, 0, 1));
+            if (this._rotation[1] != 0)
+                this._transform = mult(this._transform, rotation(this._rotation[1], 0, 1, 0));
             if (this._rotateAbout != [0, 0, 0])
                 this._transform = mult(this._transform, translation(this._rotateAbout[0], this._rotateAbout[1], this._rotateAbout[2]));         
             this._transform = mult(this._transform, scale(this._scale[0], this._scale[1], this._scale[2]));
@@ -72,6 +72,69 @@ module Game {
             this._shape.draw(animation.graphicsState, this._transform, this._mat);
         }   
     }
+
+    class Player extends GameObject {
+        constructor(shape: any, material: any,
+                    scale: Vec3 = [1, 1, 1],
+                    rotateAbout: Vec3 = [0, 0, 0],
+                    rotation: Vec3 = [0, 0, 0],
+                    position: Vec3 = [0, 0, 0], 
+                    velocity: Vec3 = [0, 0, 0], angularVelocity: Vec3 = [0, 0, 0],
+                    acceleration: Vec3 = [0, 0, 0], angularAcceleration: Vec3 = [0, 0, 0],
+                    rotateAboutVelocity: Vec3 = [0, 0, 0], rotateAboutAcceleration: Vec3 = [0, 0, 0]) {
+            super(shape, material, scale, rotateAbout, rotation, position, velocity, angularVelocity, acceleration, angularAcceleration, rotateAboutVelocity, rotateAboutAcceleration);
+        }
+        
+        updateState(timeElapsed): void {
+            let oldZ = this._position[2];
+            let oldXRotation = this._rotation[0]; 
+
+            super.updateState(timeElapsed);
+            for (let i = 0; i < wallObjects.length - 1 && wallObjects[i]._position[2] < this._position[2]; i++) {
+                let rightX = wallObjects[i]._position[0] + wallObjects[i]._scale[0]/2;
+                let leftX = wallObjects[i]._position[0] - wallObjects[i]._scale[0]/2;
+                if ((wallObjects[i]._position[2] - this._position[2]) > -3
+                    && this._position[0] > leftX && this._position[0] < rightX) {
+                    this._position[2] = oldZ;
+                    break;
+                }
+            }
+
+            this._acceleration[0] = 0;            
+            if (this._velocity[0] > CUR_HORIZONTAL_VELOCITY)
+                this._velocity[0] = CUR_HORIZONTAL_VELOCITY;
+            else if (this._velocity[0] < -CUR_HORIZONTAL_VELOCITY)
+                this._velocity[0] = -CUR_HORIZONTAL_VELOCITY;
+            if (Math.abs(this._position[0]) > MAX_HORIZONTAL_POSITION) {
+                if (this._position[0] > MAX_HORIZONTAL_POSITION)
+                    this._position[0] = MAX_HORIZONTAL_POSITION;
+                else if (this._position[0] < -MAX_HORIZONTAL_POSITION)
+                    this._position[0] = -MAX_HORIZONTAL_POSITION;
+                this._velocity[0] = 0;
+                this._acceleration[0] = 0;
+            }
+            if (this._velocity[0] < 0)
+                this._rotation[1] += -180 * timeElapsed;
+            else if (this._velocity[0] > 0)
+                this._rotation[1] += 180 * timeElapsed;
+            this._rotation[0] = oldXRotation + (180/Math.PI * (this._position[2] - oldZ)/2.5);
+            super.updateState(0.0);
+        }
+    }
+    
+    class Wall extends GameObject {
+        constructor(shape: any,
+                    material: any,
+                    scale: Vec3 = [1, 1, 1],
+                    position: Vec3 = [0, 0, 0]) {
+            super(shape, material, scale, undefined, undefined, position, undefined, undefined, undefined, undefined, undefined, undefined);
+        }
+        
+        updateState(timeElapsed): void {
+            super.updateState(timeElapsed);
+        }
+    }
+    
 
     class Bee extends GameObject {
         constructor(scale: Vec3 = [1, 1, 1],
@@ -200,9 +263,10 @@ module Game {
         }
     }
 
-    let playerObjects: GameObject[] = [];
-    let wallObjects: GameObject[] = [];
+    let playerObjects: Player[] = [];
+    let sidewallObjects: GameObject[] = [];
     let gameObjects: GameObject[] = [];
+    let wallObjects: Wall[] = [];
     let bee: Bee;
     let gameTime: number = 0.0;
 
@@ -216,7 +280,8 @@ module Game {
         yellowPlastic = new Material(vec4(0.9, 0.9, 0.1), .45, .5, .5, 30, null),
         earth = new Material(vec4(.5, .5, .5, 1), .5, 1, .5, 40, "earth.gif"),
         stars = new Material(vec4(.5, .5, .5, 1), .5, 1, 1, 40, "stars.png"),
-        wallTex = new Material(vec4(.5, .5, .5, 1), .7, 0.4, 0.6, 30, "wall.png");
+        wallTex = new Material(vec4(.5, .5, .5, 1), .7, 0.4, 0.6, 30, "wall.png"),
+        ballTex = new Material(vec4(.5, .5, .5, 1), .7, 0.4, 0.6, 30, "ball.png");
 
     let s_cube;
     let s_teapot;
@@ -228,10 +293,11 @@ module Game {
     let s_pyramid;
     let s_wall;
 
-    const BEE_MAXIMUM_Z_DELTA: number = 0.5;
-    const PLAYER_DEFAULT_Z_VELOCITY: number = 10;
+    const BEE_MAXIMUM_Z_DELTA: number = 0.25;
+    const PLAYER_DEFAULT_Z_VELOCITY: number = 15;
     const MAX_HORIZONTAL_VELOCITY: number = 45;
-    let CUR_HORIZONTAL_VELOCITY: number = MAX_HORIZONTAL_VELOCITY;
+    const NORMAL_HORIZONTAL_VELOCITY: number = 30;
+    let CUR_HORIZONTAL_VELOCITY: number = NORMAL_HORIZONTAL_VELOCITY;
     const ACCELERATION: number = 800;
     const FLOOR_WIDTH: number = 75;
     const MAX_HORIZONTAL_POSITION: number = (FLOOR_WIDTH / 2) - 2.5;
@@ -239,6 +305,38 @@ module Game {
     let last_z_pos: number;
     let previousWall: number;
 
+    function randomInclusive(min:number, max: number): number {
+        return Math.floor(Math.random() * (max + 1 - min)) + min;
+    }
+
+    let previousType: number = 0;
+    function generateWalls(z: number): Wall[] {
+        let length: number;
+        let currentType: number;
+        while ((currentType = randomInclusive(0, 4)) == previousType)
+            continue;
+        previousType = currentType;
+        switch (currentType) {
+            case 0: // One wall from left to right - length
+                length = randomInclusive(45, FLOOR_WIDTH - 8);
+                return [new Wall(s_cube, brownPlastic, [length, 3, 1], [-(MAX_HORIZONTAL_POSITION + 2.5 - length/2), 4, z])];
+            case 1: // One wall from right to left - length
+                length = randomInclusive(45, FLOOR_WIDTH - 8);
+                return [new Wall(s_cube, brownPlastic, [length, 3, 1], [MAX_HORIZONTAL_POSITION + 2.5 - length/2, 4, z])];
+            case 2: // Walls from each side that end on the right side
+                length = randomInclusive(35, 45);
+                return [new Wall(s_cube, brownPlastic, [length, 3, 1], [-(MAX_HORIZONTAL_POSITION + 2.5 - length/2), 4, z]),
+                        new Wall(s_cube, brownPlastic, [length/2, 3, 1], [MAX_HORIZONTAL_POSITION + 2.5 - length/4, 4, z])];
+            case 3: // Walls from each side that end on the left side
+                length = randomInclusive(35, 45);
+                return [new Wall(s_cube, brownPlastic, [length, 3, 1], [MAX_HORIZONTAL_POSITION + 2.5 - length/2, 4, z]),
+                        new Wall(s_cube, brownPlastic, [length/2, 3, 1], [-(MAX_HORIZONTAL_POSITION + 2.5 - length/4), 4, z])];
+            case 4: // Middle wall
+                length = randomInclusive(30, 60);
+                return [new Wall(s_cube, brownPlastic, [length, 3, 1], [0, 4, z])];
+        }
+    }
+    
     export function initializeGame(animation: any) {
         s_cube = new cube(null);
         s_teapot = new shape_from_file("teapot.obj")
@@ -251,14 +349,17 @@ module Game {
         s_wall = new wall();
         
         animation.graphicsState.camera_transform = lookAt(camera_pos, [0, 0, 0], [0, 1, 0]);
-        playerObjects.push(new GameObject(s_sphere, earth, [2.5, 2.5, 2.5], undefined, undefined,
+        playerObjects.push(new Player(s_sphere, ballTex, [2.5, 2.5, 2.5], undefined, undefined,
                                         [0, 5, 0], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
         last_z_pos = 0;
-        bee = new Bee([1, 1, 1], undefined, undefined, [0, 8, 30], [0, 0, -4], undefined, [0, 0, -0.005]);
+        bee = new Bee([1, 1, 1], undefined, undefined, [0, 8, 40], [0, 0, -4], undefined, [0, 0, -0.001]);
         for (let i = 40; i > -15; i--) {
-            wallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5*i]));
-            wallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [FLOOR_WIDTH/2 + 2.5, 10, -5*i]));
-            wallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [-(FLOOR_WIDTH/2 + 2.5), 10, -5*i]));
+            sidewallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5*i]));
+            sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [FLOOR_WIDTH/2 + 2.5, 10, -5*i]));
+            sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 20, 5], undefined, undefined, [-(FLOOR_WIDTH/2 + 2.5), 10, -5*i]));
+        }
+        for (let i = 10; i > -5; i--) {
+            Array.prototype.push.apply(wallObjects, generateWalls(-25 * i + 12.5));
         }
     }
 
@@ -288,24 +389,10 @@ module Game {
         for (let obj of gameObjects) {
             obj.updateState(timeElapsed);
         }
-        for (let obj of playerObjects) {
-            obj._acceleration[0] = 0;
-            
-            if (obj._velocity[0] > CUR_HORIZONTAL_VELOCITY)
-                obj._velocity[0] = CUR_HORIZONTAL_VELOCITY;
-            else if (obj._velocity[0] < -CUR_HORIZONTAL_VELOCITY)
-                obj._velocity[0] = -CUR_HORIZONTAL_VELOCITY;
-            if (Math.abs(obj._position[0]) > MAX_HORIZONTAL_POSITION) {
-                if (obj._position[0] > MAX_HORIZONTAL_POSITION)
-                    obj._position[0] = MAX_HORIZONTAL_POSITION;
-                else if (obj._position[0] < -MAX_HORIZONTAL_POSITION)
-                    obj._position[0] = -MAX_HORIZONTAL_POSITION;
-                obj._velocity[0] = 0;
-                obj._acceleration[0] = 0;
-            }
-            obj.updateState(0.0);
-        }
         bee.updateState(timeElapsed);
+        for (let obj of wallObjects) {
+            obj.updateState(timeElapsed);
+        }
         
         let maxIndex = 0;
         playerObjects.forEach(function(obj: GameObject, index: number) {
@@ -314,19 +401,26 @@ module Game {
         });
         
         let min = 0;
-        for (let i = wallObjects.length - 1; i >= min;) {
-            if (wallObjects[i]._position[2] > playerObjects[maxIndex]._position[2] + 75) {
+        for (let i = sidewallObjects.length - 1; i >= min;) {
+            if (sidewallObjects[i]._position[2] > playerObjects[maxIndex]._position[2] + 75) {
                 min += 3;
-                let new_z = wallObjects[0]._position[2] - 5;
+                let new_z = sidewallObjects[0]._position[2] - 5;
                 for (let j = 0; j < 3; j++) {
-                    let cur = wallObjects.pop();
+                    let cur = sidewallObjects.pop();
                     cur._position[2] = new_z;
                     cur.updateState(0.0);
-                    wallObjects.unshift(cur);
+                    sidewallObjects.unshift(cur);
                 }
             }
             else
                 break;
+        }
+        
+        for (let i = wallObjects.length - 1; wallObjects[i]._position[2] > playerObjects[maxIndex]._position[2] + 75; i = wallObjects.length - 1) {
+            let currentZ = wallObjects[i]._position[2];
+            while (wallObjects[wallObjects.length - 1]._position[2] == currentZ)
+                wallObjects.pop();
+            Array.prototype.unshift.apply(wallObjects, generateWalls(wallObjects[0]._position[2] - 25));
         }
         
         let pos_diff = playerObjects[maxIndex]._position[2] - last_z_pos;
@@ -350,11 +444,14 @@ module Game {
         for (let obj of playerObjects) {
             obj.draw(animation);
         }
-        for (let obj of wallObjects) {
+        for (let obj of sidewallObjects) {
             obj.draw(animation);
         }
         bee.draw(animation);
         for (let obj of gameObjects) {
+            obj.draw(animation);
+        }
+        for (let obj of wallObjects) {
             obj.draw(animation);
         }
     }
