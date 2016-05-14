@@ -221,8 +221,8 @@ module Game {
                     minIndex = index;
             });
             this._position[0] = playerObjects[minIndex]._position[0];
-            if (this._velocity[2] < -(PLAYER_DEFAULT_Z_VELOCITY + BIRD_MAXIMUM_Z_DELTA))
-                this._velocity[2] = -(PLAYER_DEFAULT_Z_VELOCITY + BIRD_MAXIMUM_Z_DELTA);
+            if (this._velocity[2] < -(PLAYER_CURRENT_Z_VELOCITY + BIRD_MAXIMUM_Z_DELTA))
+                this._velocity[2] = -(PLAYER_CURRENT_Z_VELOCITY + BIRD_MAXIMUM_Z_DELTA);
             super.updateState(timeElapsed);
         }
         
@@ -358,12 +358,12 @@ module Game {
 
     const BIRD_MAXIMUM_Z_DELTA: number = 5;
     const PLAYER_DEFAULT_Z_VELOCITY: number = 15;
-    const PLAYER_MAX_Z_VELOCITY: number = 30;
+    const PLAYER_MAX_Z_VELOCITY: number = 25;
     let PLAYER_CURRENT_Z_VELOCITY: number = PLAYER_DEFAULT_Z_VELOCITY;
-    const MAX_HORIZONTAL_VELOCITY: number = 55;
+    const MAX_HORIZONTAL_VELOCITY: number = 50;
     const NORMAL_HORIZONTAL_VELOCITY: number = 30;
     let CUR_HORIZONTAL_VELOCITY: number = NORMAL_HORIZONTAL_VELOCITY;
-    const ACCELERATION: number = 800;
+    const ACCELERATION: number = 1000;
     const FLOOR_WIDTH: number = 75;
     const MAX_HORIZONTAL_POSITION: number = (FLOOR_WIDTH / 2) - 2.5;
     let camera_pos: Vec3 = [0, 55, 65];
@@ -377,12 +377,14 @@ module Game {
     function createPowerup(z: number): void {
         switch (randomInclusive(0, 1)) {
             case 0:
-                switch (randomInclusive(1, 5)) {
-                        case 1: var tex = stars; break;
-                        case 2: var tex = earth; break;
-                        case 3: var tex = purplePlastic; break;
-                        case 4: var tex = lightGreyPlastic; break;
-                        case 5: var tex = yellowPlastic; break;
+                let tex;
+                switch (randomInclusive(0, 5)) {
+                        case 0: tex = ballTex; break;
+                        case 1: tex = stars; break;
+                        case 2: tex = earth; break;
+                        case 3: tex = purplePlastic; break;
+                        case 4: tex = lightGreyPlastic; break;
+                        case 5: tex = yellowPlastic; break;
                 }
                 powerupObjects.push(new Powerup(s_pyramid, tex, [4, 4, 4], [randomInclusive(-30, 30), 4, z], PowerupType.Duplicate));
                 break;
@@ -435,7 +437,7 @@ module Game {
         playerObjects.push(new Player(s_sphere, ballTex, [2.5, 2.5, 2.5], undefined, undefined,
                                         [0, 5, 0], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
         last_z_pos = 0;
-        bird = new Bird([1, 1, 1], undefined, undefined, [0, 8, 15], [0, 0, -7], undefined, [0, 0, -0.75]);
+        bird = new Bird([1, 1, 1], undefined, undefined, [0, 8, 30], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY + 4], undefined, [0, 0, -0.5]);
         for (let i = 40; i > -15; i--) {
             sidewallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5*i]));
             sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 10, 5], undefined, undefined, [FLOOR_WIDTH/2 + 2.5, 10, -5*i]));
@@ -549,13 +551,15 @@ module Game {
             }
         }
         
-        playerObjects = playerObjects.filter(function(obj: GameObject) {
-            if ((Math.abs(obj._position[2] - bird._position[2]) < 5) && (Math.abs(obj._position[0] - bird._position[0]) < 2)) {
-                bird._velocity[2] = -10;
-                return false;
+        for (let i = 0; i < playerObjects.length; i++) {
+            if ((Math.abs(playerObjects[i]._position[2] - bird._position[2]) < 5) && (Math.abs(playerObjects[i]._position[0] - bird._position[0]) < 2)) {
+                bird._velocity[2] += 8;
+                bird._position[2] += 10;
+                bird.updateState(0.0);
+                playerObjects.splice(i, 1);
+                break;
             }
-            return true;
-        });
+        }
         if (playerObjects.length == 0) {
             alert("You died. Press okay to restart.");
             location.reload();

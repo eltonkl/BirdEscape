@@ -13,11 +13,13 @@ function pyramid()
 inherit(pyramid, shape);
 pyramid.prototype.populate = function()
 {
+    // Bottom (4 triangles)
     this.vertices.push(vec3(0, 0, 0), vec3(0.5, 0, 0.5), vec3(-0.5, 0, 0.5), vec3(-0.5, 0, -0.5), vec3(0.5, 0, -0.5));
     this.normals.push(vec3(0, -1, 0), vec3(0.5, -1, 0.5), vec3(-0.5, 0, 0.5), vec3(-0.5, 0, 0.5), vec3(0.5, 0, -0.5));
     this.texture_coords.push(vec2(0.5, 0.5), vec2(0.75, 0.75), vec2(0.25, 0.75), vec2(0.25, 0.25), vec2(0.75, 0.25));
     this.indices.push(0, 1, 2, 0, 2, 3, 0, 3, 4, 0, 1, 4);
     
+    // top (4 triangles)
     var sqrt = Math.sqrt(0.5);
     this.vertices.push(vec3(0, sqrt, 0), vec3(0, sqrt, 0), vec3(0, sqrt, 0), vec3(0, sqrt, 0));
     this.normals.push(vec3(0, 1, 0), vec3(0, 1, 0), vec3(0, 1, 0), vec3(0, 1, 0));
@@ -35,16 +37,19 @@ function wall()
 inherit(wall, shape);
 shape.prototype.populate = function()
 {
+    // Top face
     this.vertices.push(vec3(0.5, 0, 0.5), vec3(-0.5, 0, 0.5), vec3(-0.5, 0, -0.5), vec3(0.5, 0, -0.5));
     this.normals.push(vec3(0.5, 1, 0.5), vec3(-0.5, 1, 0.5), vec3(-0.5, 1, -0.5), vec3(0.5, 1, -0.5));
     this.texture_coords.push(vec2(0.5, 0), vec2(0, 0), vec2(0, 0.5), vec2(0.5, 0.5));
     this.indices.push(0, 1, 2, 0, 2, 3);
     
+    // Side face
     this.vertices.push(vec3(0.5, 0, 0.5), vec3(0.5, 0, -0.5), vec3(0.5, -1, 0.5), vec3(0.5, -1, -0.5));
     this.normals.push(vec3(1, 0, 0.5), vec3(1, 0, -0.5), vec3(1, -1, 0.5), vec3(1, -1, -0.5));
     this.texture_coords.push(vec2(0.5, 0.5), vec2(0.5, 1), vec2(1, 0.5), vec2(1, 1));
     this.indices.push(4, 5, 6, 5, 6, 7);
     
+    // Side face
     this.vertices.push(vec3(-0.5, 0, 0.5), vec3(-0.5, 0, -0.5), vec3(-0.5, -1, 0.5), vec3(-0.5, -1, -0.5));
     this.normals.push(vec3(-1, 0, 0.5), vec3(-1, 0, -0.5), vec3(-1, -1, 0.5), vec3(-1, -1, -0.5));
     this.texture_coords.push(vec2(0.5, 0.5), vec2(0.5, 1), vec2(1, 0.5), vec2(1, 1));

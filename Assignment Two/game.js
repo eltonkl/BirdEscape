@@ -204,8 +204,8 @@ var Game;
                     minIndex = index;
             });
             this._position[0] = playerObjects[minIndex]._position[0];
-            if (this._velocity[2] < -(PLAYER_DEFAULT_Z_VELOCITY + BIRD_MAXIMUM_Z_DELTA))
-                this._velocity[2] = -(PLAYER_DEFAULT_Z_VELOCITY + BIRD_MAXIMUM_Z_DELTA);
+            if (this._velocity[2] < -(PLAYER_CURRENT_Z_VELOCITY + BIRD_MAXIMUM_Z_DELTA))
+                this._velocity[2] = -(PLAYER_CURRENT_Z_VELOCITY + BIRD_MAXIMUM_Z_DELTA);
             _super.prototype.updateState.call(this, timeElapsed);
         };
         Bird.prototype.drawBody = function (animation, model_transform, headMaterial, tailMaterial, bodyMaterial) {
@@ -305,12 +305,12 @@ var Game;
     var s_wall;
     var BIRD_MAXIMUM_Z_DELTA = 5;
     var PLAYER_DEFAULT_Z_VELOCITY = 15;
-    var PLAYER_MAX_Z_VELOCITY = 30;
+    var PLAYER_MAX_Z_VELOCITY = 25;
     var PLAYER_CURRENT_Z_VELOCITY = PLAYER_DEFAULT_Z_VELOCITY;
-    var MAX_HORIZONTAL_VELOCITY = 55;
+    var MAX_HORIZONTAL_VELOCITY = 50;
     var NORMAL_HORIZONTAL_VELOCITY = 30;
     var CUR_HORIZONTAL_VELOCITY = NORMAL_HORIZONTAL_VELOCITY;
-    var ACCELERATION = 800;
+    var ACCELERATION = 1000;
     var FLOOR_WIDTH = 75;
     var MAX_HORIZONTAL_POSITION = (FLOOR_WIDTH / 2) - 2.5;
     var camera_pos = [0, 55, 65];
@@ -322,21 +322,25 @@ var Game;
     function createPowerup(z) {
         switch (randomInclusive(0, 1)) {
             case 0:
-                switch (randomInclusive(1, 5)) {
+                var tex = void 0;
+                switch (randomInclusive(0, 5)) {
+                    case 0:
+                        tex = ballTex;
+                        break;
                     case 1:
-                        var tex = stars;
+                        tex = stars;
                         break;
                     case 2:
-                        var tex = earth;
+                        tex = earth;
                         break;
                     case 3:
-                        var tex = purplePlastic;
+                        tex = purplePlastic;
                         break;
                     case 4:
-                        var tex = lightGreyPlastic;
+                        tex = lightGreyPlastic;
                         break;
                     case 5:
-                        var tex = yellowPlastic;
+                        tex = yellowPlastic;
                         break;
                 }
                 powerupObjects.push(new Powerup(s_pyramid, tex, [4, 4, 4], [randomInclusive(-30, 30), 4, z], PowerupType.Duplicate));
@@ -386,7 +390,7 @@ var Game;
         animation.graphicsState.camera_transform = lookAt(camera_pos, [0, 0, 0], [0, 1, 0]);
         playerObjects.push(new Player(s_sphere, ballTex, [2.5, 2.5, 2.5], undefined, undefined, [0, 5, 0], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY], undefined, undefined, undefined));
         last_z_pos = 0;
-        bird = new Bird([1, 1, 1], undefined, undefined, [0, 8, 15], [0, 0, -7], undefined, [0, 0, -0.75]);
+        bird = new Bird([1, 1, 1], undefined, undefined, [0, 8, 30], [0, 0, -PLAYER_DEFAULT_Z_VELOCITY + 4], undefined, [0, 0, -0.5]);
         for (var i = 40; i > -15; i--) {
             sidewallObjects.push(new GameObject(s_cube, redPlastic, [FLOOR_WIDTH, 5, 5], undefined, undefined, [0, 0, -5 * i]));
             sidewallObjects.push(new GameObject(s_wall, wallTex, [5, 10, 5], undefined, undefined, [FLOOR_WIDTH / 2 + 2.5, 10, -5 * i]));
@@ -503,13 +507,15 @@ var Game;
                 createPowerup(powerupObjects[powerupObjects.length - 1]._position[2] - 150);
             }
         }
-        playerObjects = playerObjects.filter(function (obj) {
-            if ((Math.abs(obj._position[2] - bird._position[2]) < 5) && (Math.abs(obj._position[0] - bird._position[0]) < 2)) {
-                bird._velocity[2] = -10;
-                return false;
+        for (var i = 0; i < playerObjects.length; i++) {
+            if ((Math.abs(playerObjects[i]._position[2] - bird._position[2]) < 5) && (Math.abs(playerObjects[i]._position[0] - bird._position[0]) < 2)) {
+                bird._velocity[2] += 8;
+                bird._position[2] += 10;
+                bird.updateState(0.0);
+                playerObjects.splice(i, 1);
+                break;
             }
-            return true;
-        });
+        }
         if (playerObjects.length == 0) {
             alert("You died. Press okay to restart.");
             location.reload();
