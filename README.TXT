@@ -9,7 +9,7 @@ Pyramid: Creates a copy of the ball.
 Cube: Increases forward velocity and horizontal velocity cap for a couple seconds.
 
 Controls:
-alt+a: Play/Pause
+spacebar: Play/Pause
 a: Move left
 d: Move right
 

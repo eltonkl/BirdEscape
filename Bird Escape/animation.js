@@ -63,7 +63,7 @@ Animation.prototype.init_keys = function () {
     //});
     //shortcut.add("ALT+g", function () { gouraud = !gouraud; gl.uniform1i(g_addrs.GOURAUD_loc, gouraud); });
     //shortcut.add("ALT+n", function () { color_normals = !color_normals; gl.uniform1i(g_addrs.COLOR_NORMALS_loc, color_normals); });
-    shortcut.add("ALT+a", function () { animate = !animate; });
+    shortcut.add("Space", function () { animate = !animate; });
     shortcut.add("a", function() { Game.keyPressed("ALT+q"); });
     shortcut.add("d", function() { Game.keyPressed("ALT+e"); });
 
