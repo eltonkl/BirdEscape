@@ -517,7 +517,7 @@ var Game;
             }
         }
         if (playerObjects.length == 0) {
-            alert("You died. Press okay to restart.");
+            alert("You died. Press okay to restart.\nFinal score: " + ((animation.graphicsState.animation_time / 1000) * 3).toFixed(0));
             location.reload();
         }
         gameTime += timeElapsed;
