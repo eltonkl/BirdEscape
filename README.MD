@@ -1,4 +1,7 @@
 Bird Escape
+===========
+
+![Bird Escape screenshot](preview.png)
 
 Roll forward, move sideways to dodge walls, and pick up powerups to escape from the bird!
 Every time the bird eats one of the balls, the bird loses some its velocity and is moved back a couple of units.
